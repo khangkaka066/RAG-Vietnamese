@@ -32,7 +32,8 @@ def test_unavailable_when_no_evidence_exists() -> None:
 
 
 def test_evaluation_report_has_quality_metrics() -> None:
-    report = evaluate(build_engine(), load_eval_cases(ROOT / "data" / "eval.jsonl"))
-    assert report["cases"] == 5
+    eval_cases = load_eval_cases(ROOT / "data" / "eval.jsonl")
+    report = evaluate(build_engine(), eval_cases)
+    assert report["cases"] == len(eval_cases)
     assert report["retrieval_hit_rate"] >= 0.8
     assert report["citation_coverage"] == 1.0

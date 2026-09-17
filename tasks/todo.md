@@ -9,7 +9,7 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] LLM provider: **OpenRouter với model free** (OpenAI-compatible API, base_url riêng, cần OPENROUTER_API_KEY)
 - [x] Embedding model tiếng Việt: **bkai-foundation-models/vietnamese-bi-encoder** (qua sentence-transformers)
 - [x] Công cụ tracking: **MLflow (self-host)**
-- [ ] Mở rộng `data/knowledge_base.jsonl` và `data/eval.jsonl` (hiện chỉ 5 dòng — cần đủ đa dạng để số liệu eval có ý nghĩa)
+- [x] Mở rộng `data/knowledge_base.jsonl` và `data/eval.jsonl` (hiện chỉ 5 dòng — cần đủ đa dạng để số liệu eval có ý nghĩa)
 
 ## Phase 1 — Embedding retrieval (thay lexical-only)
 - [ ] Thêm `EmbeddingRetriever` trong `src/vsf_rag/retrieval.py` (hoặc file mới `retrieval_embedding.py`)

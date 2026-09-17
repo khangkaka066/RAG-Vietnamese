@@ -3,3 +3,18 @@
 {"query":"Quality gate của pipeline ML kiểm tra gì?","expected_doc_ids":["mlops-001"],"required_terms":["schema","latency","tái lập"]}
 {"query":"Agent gọi tool cần có những cơ chế an toàn nào?","expected_doc_ids":["agent-001"],"required_terms":["schema","timeout","log"]}
 {"query":"API suy luận cần có endpoint và trạng thái nào?","expected_doc_ids":["api-001"],"required_terms":["health","unavailable","timeout"]}
+{"query":"Chunking và overlap giữa các đoạn văn bản dùng để làm gì trong RAG?","expected_doc_ids":["rag-002"],"required_terms":["chunk","overlap"]}
+{"query":"Hybrid search kết hợp BM25 và vector như thế nào?","expected_doc_ids":["rag-003"],"required_terms":["bm25","reciprocal rank fusion"]}
+{"query":"Reranking bằng cross-encoder hoạt động ra sao?","expected_doc_ids":["rag-004"],"required_terms":["cross-encoder","reranking"]}
+{"query":"Query rewriting và kỹ thuật HyDE dùng để làm gì?","expected_doc_ids":["rag-005"],"required_terms":["hyde","query rewriting"]}
+{"query":"Embedding tiếng Việt bằng bi-encoder cần lưu ý gì về dấu thanh?","expected_doc_ids":["emb-001"],"required_terms":["bi-encoder","dấu thanh"]}
+{"query":"Cosine similarity và chuẩn hóa vector liên quan thế nào?","expected_doc_ids":["emb-003"],"required_terms":["cosine similarity","chuẩn hóa vector"]}
+{"query":"Vector database dùng chỉ mục HNSW hay IVF để tăng tốc thế nào?","expected_doc_ids":["vec-001"],"required_terms":["hnsw","ivf"]}
+{"query":"Hit-rate và MRR@k đánh giá retrieval như thế nào?","expected_doc_ids":["eval-002"],"required_terms":["hit-rate","mrr@k"]}
+{"query":"Câu trả lời có bịa thêm thông tin ngoài ngữ cảnh và có giải quyết đúng câu hỏi được đặt ra hay không?","expected_doc_ids":["eval-003"],"required_terms":["faithfulness","answer relevancy"]}
+{"query":"Prompt template và system prompt cần có cấu trúc gì?","expected_doc_ids":["llm-001"],"required_terms":["prompt template","system prompt"]}
+{"query":"Hallucination và grounding trong LLM liên quan thế nào?","expected_doc_ids":["llm-002"],"required_terms":["hallucination","grounding"]}
+{"query":"Giám sát data drift trong production để làm gì?","expected_doc_ids":["mlops-003"],"required_terms":["data drift"]}
+{"query":"Router lựa chọn dùng RAG hay gọi tool dựa trên gì?","expected_doc_ids":["agent-002"],"required_terms":["router","phân loại"]}
+{"query":"Rate limiting và caching cho API mang lại lợi ích gì?","expected_doc_ids":["api-002"],"required_terms":["rate limiting","caching"]}
+{"query":"PII redaction và phòng chống prompt injection cần làm gì?","expected_doc_ids":["sec-001"],"required_terms":["pii redaction","prompt injection"]}

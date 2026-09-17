@@ -4,21 +4,21 @@ Status: **In Progress**
 
 A small, provider-agnostic service for Vietnamese document retrieval, grounded answers, citations, tool calls, and repeatable evaluation.
 
-## Ứng dụng thực tế
+## Real-world applications
 
-Sau khi hoàn thiện, kiến trúc này có thể áp dụng cho các bài toán cần tra cứu
-và trả lời dựa trên kho tài liệu tiếng Việt nội bộ, ví dụ:
+Once complete, this architecture can be applied to problems that require
+retrieving and answering from an internal Vietnamese document store, such as:
 
-- Trợ lý tra cứu chính sách/quy trình nội bộ doanh nghiệp (HR, pháp lý, vận hành)
-- Chatbot hỗ trợ khách hàng dựa trên tài liệu sản phẩm/FAQ, có trích dẫn nguồn
-  để kiểm chứng thay vì trả lời "ảo giác"
-- Công cụ tìm kiếm ngữ nghĩa cho tài liệu kỹ thuật, hợp đồng, hoặc cơ sở tri
-  thức nội bộ khi tìm kiếm từ khóa thông thường không đủ chính xác
-- Nền tảng để mở rộng thành agent có khả năng gọi tool (tra cứu số liệu, gọi
-  API nghiệp vụ) thay vì chỉ trả lời tĩnh
-- Bộ khung đánh giá (retrieval hit-rate, citation coverage, faithfulness) để
-  đo lường và cải thiện chất lượng hệ thống RAG một cách có kiểm chứng, thay
-  vì đánh giá cảm tính
+- An internal policy/procedure lookup assistant for enterprises (HR, legal, operations)
+- A customer support chatbot grounded in product documentation/FAQs, with source
+  citations to verify answers instead of hallucinating
+- A semantic search tool for technical documents, contracts, or internal
+  knowledge bases where plain keyword search isn't accurate enough
+- A foundation for extending into a tool-using agent (looking up data, calling
+  business APIs) instead of only returning static answers
+- An evaluation framework (retrieval hit-rate, citation coverage, faithfulness)
+  to measure and improve RAG system quality with evidence, rather than by
+  subjective judgment
 
 ## Architecture
 

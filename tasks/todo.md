@@ -6,9 +6,9 @@ Mục tiêu: định vị lại project để khớp JD VinSmart Future - AI Eng
 Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 
 ## Phase 0 — Chốt phạm vi
-- [ ] Xác nhận LLM provider dùng để generation (OpenAI API / Anthropic API / local qua Ollama)
-- [ ] Xác nhận embedding model tiếng Việt (vd `bkai-foundation-models/vietnamese-bi-encoder`)
-- [ ] Xác nhận công cụ tracking: MLflow (self-host, không cần tài khoản) hay W&B (cần account)
+- [x] LLM provider: **OpenRouter với model free** (OpenAI-compatible API, base_url riêng, cần OPENROUTER_API_KEY)
+- [x] Embedding model tiếng Việt: **bkai-foundation-models/vietnamese-bi-encoder** (qua sentence-transformers)
+- [x] Công cụ tracking: **MLflow (self-host)**
 - [ ] Mở rộng `data/knowledge_base.jsonl` và `data/eval.jsonl` (hiện chỉ 5 dòng — cần đủ đa dạng để số liệu eval có ý nghĩa)
 
 ## Phase 1 — Embedding retrieval (thay lexical-only)

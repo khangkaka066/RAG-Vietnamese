@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
-from .retrieval import LexicalRetriever, SearchResult
+from .retrieval import Retriever, SearchResult
 
 
 @dataclass(frozen=True)
@@ -25,9 +25,11 @@ class GroundedAnswerEngine:
     citations, status handling, and the API contract stable.
     """
 
-    def __init__(self, retriever: LexicalRetriever, minimum_score: float = 0.15) -> None:
+    def __init__(self, retriever: Retriever, minimum_score: float | None = None) -> None:
         self.retriever = retriever
-        self.minimum_score = minimum_score
+        self.minimum_score = (
+            minimum_score if minimum_score is not None else getattr(retriever, "minimum_score", 0.15)
+        )
 
     def answer(self, query: str, top_k: int = 3) -> Answer:
         results = self.retriever.search(query, top_k=top_k)

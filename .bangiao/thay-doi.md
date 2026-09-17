@@ -1,33 +1,24 @@
-# Thay đổi: Mở rộng knowledge_base.jsonl và eval.jsonl (Phase 0) — vòng sửa theo review
+# Thay đổi: Fix HybridRetriever alpha boundary contract + minimum_score docs (vòng sửa sau Codex review 2/3)
 
 ## File đã đổi
-- `data/knowledge_base.jsonl` — Sửa nội dung doc `agent-001` (dòng 4) để khắc phục vấn đề [P2 #1]:
-  đổi cụm "tác động bên ngoài" → "ảnh hưởng bên ngoài" và "tự động gọi" → "tự ý gọi", loại bỏ hoàn
-  toàn token "động" khỏi doc này. Trước đó, `agent-001` là doc duy nhất khác `rag-001` chứa token
-  "động" (từ "tác động"/"tự động"), nên với câu hỏi "RAG hoạt động như thế nào?" (chứa token hiếm
-  "động"), TF-IDF xếp `agent-001` lên top-1 thay vì `rag-001`. Sau khi sửa, `rag-001` là top-1 duy
-  nhất khớp câu hỏi này (đã kiểm chứng lại bằng script gọi trực tiếp `GroundedAnswerEngine`), giữ
-  đúng hành vi case eval gốc `RAG hoạt động như thế nào?` → `rag-001`, `keyword_coverage` = 1.0.
-  Không đổi phần còn lại của file.
-- `data/eval.jsonl` — Sửa case về Faithfulness/answer relevancy (dòng 14) để khắc phục vấn đề
-  [P2 #2]: đổi query từ "Faithfulness và answer relevancy dùng để đánh giá gì trong LLM?" (dùng
-  nhiều từ chung với case `eval-001` như "đánh giá", "LLM") sang "Câu trả lời có bịa thêm thông tin
-  ngoài ngữ cảnh và có giải quyết đúng câu hỏi được đặt ra hay không?" — dùng các cụm từ đặc trưng
-  chỉ xuất hiện trong nội dung `eval-003` ("bịa", "giải quyết", "câu hỏi được đặt ra"). Đã kiểm
-  chứng lại: engine trả về top-1 = `eval-003` (không còn bị `eval-001` chiếm top-1), câu trả lời
-  sinh ra từ đúng text của `eval-003` nên chứa đủ cả hai `required_terms` ("faithfulness" và
-  "answer relevancy"), `keyword_coverage` = 1.0. Giữ nguyên `expected_doc_ids` và `required_terms`.
-- `tests/test_retrieval.py` (dòng ~34-38) — Khắc phục vấn đề [P2 #3]: bỏ hard-code
-  `assert report["cases"] == 20`, thay bằng so sánh động
-  `assert report["cases"] == len(eval_cases)` (dùng chung biến `eval_cases` đã load từ
-  `load_eval_cases(...)` trước khi gọi `evaluate`), để test không vỡ khi số case trong
-  `data/eval.jsonl` thay đổi hợp lệ.
+- `src/vsf_rag/retrieval.py` — Fix lỗi logic tại `HybridRetriever.search` mà Codex tìm thấy: `min(lexical_score, 1.0)` phá contract "alpha=0.0 phải tương đương lexical-only" (2 tài liệu điểm 1.97/1.85 đều bị cắt về 1.0 rồi tie-break sai theo id). Sửa bằng cách bypass hoàn toàn công thức fusion tại 2 đầu mút: khi `alpha == 0.0`, `search()` trả thẳng `self.lexical.search(query, top_k=top_k)`; khi `alpha == 1.0`, trả thẳng `self.embedding.search(query, top_k=top_k)`. Với `0 < alpha < 1`, giữ nguyên công thức trộn hiện tại (`alpha * cosine + (1 - alpha) * min(lexical_score, 1.0)`) — cap này chỉ còn ảnh hưởng vùng blend giữa 2 nhánh (nơi nó có lý do tồn tại: tránh 1 nhánh áp đảo nhánh kia), không còn ảnh hưởng tới 2 đầu mút vốn là nơi Codex phát hiện lỗi. Cập nhật docstring của `HybridRetriever` giải thích rõ vì sao bypass ở biên là cách đảm bảo đúng 100% thay vì cố chuẩn hoá công thức.
+- `src/vsf_rag/retrieval_embedding.py` — Thêm comment tại nơi khai báo `minimum_score: float = 0.3` giải thích rõ lý do lệch so với đề xuất ban đầu 0.5 trong kế hoạch (xem số đo bên dưới).
+- `tests/test_embedding_retrieval.py`:
+  - Thêm test mới `test_hybrid_alpha_zero_matches_lexical_only_ranking_above_unit_score` — test adversarial tái hiện đúng kịch bản Codex mô tả: 3 tài liệu, trong đó 2 tài liệu ("mid" ~1.07, "hi" ~1.06) có điểm lexical > 1.0, với "mid" (điểm cao hơn) có id sắp xếp *sau* "hi" theo alphabet — đúng kịch bản khiến `min(score, 1.0)` + tie-break theo id trả sai thứ tự. Test verify `HybridRetriever(alpha=0.0).search(...)` trả về đúng y hệt thứ tự `lexical.search(...)` thuần (`["mid", "hi", "lo"]`), không bị cắt/tie-break sai.
+  - Thu hẹp `except Exception: pytest.skip(...)` trong `_real_embedding_retriever_or_skip` (dòng ~246-252 cũ) thành bắt cụ thể `HfHubHTTPError`, `LocalEntryNotFoundError` (từ `huggingface_hub.utils`), `OSError`, `ConnectionError`, `TimeoutError` — các lỗi này đặc trưng cho môi trường không tải được model (không mạng, không cache local). Lỗi tích hợp thật (ví dụ `ValueError` từ logic validate của `EmbeddingRetriever`) giờ sẽ làm test FAIL thay vì bị skip nhầm thành "thiếu môi trường".
+
+## Số đo cosine distribution (bằng chứng cho minimum_score=0.3, đo bằng model thật `bkai-foundation-models/vietnamese-bi-encoder` trên `data/knowledge_base.jsonl` + `data/eval.jsonl`)
+- Out-of-domain (câu hỏi không liên quan tới knowledge base): cosine similarity cao nhất quan sát được ≈ **0.2063**.
+- In-domain (câu hỏi thuộc eval set, có tài liệu liên quan thật trong knowledge base): cosine similarity thấp nhất quan sát được ≈ **0.3364**.
+- Khoảng trống phân tách rõ ràng nằm giữa 0.2063 và 0.3364 → chọn ngưỡng **0.3** (nằm giữa khoảng trống, không cắt nhầm in-domain, không lọt nhầm out-of-domain).
+- Nếu dùng 0.5 (giá trị đề xuất ban đầu trong kế hoạch trước khi đo thực tế) sẽ loại nhầm case `eval-003` hợp lệ (cosine của nó < 0.5 nhưng > 0.3364, tức vẫn nằm trong vùng in-domain thật).
+- Kết luận: **giữ nguyên 0.3` trong code là đúng**, không đổi về 0.5 theo kế hoạch gốc; đã bổ sung comment tại chỗ khai báo để lý do này không bị mất khi đọc code độc lập với `.bangiao/`.
+
+## Kết quả kiểm thử
+- `python3 -m pytest -q`: 21 test PASS (thêm 1 test adversarial mới so với vòng trước, không xoá test nào).
+- `python3 scripts/run_eval.py` (mặc định lexical): 20 case, hit-rate/citation/keyword đều 1.0 — không có regression.
 
 ## Ghi chú
-- Đã tự kiểm tra lại bằng script gọi trực tiếp `LexicalRetriever`/`GroundedAnswerEngine` cho cả hai
-  câu hỏi liên quan: "RAG hoạt động như thế nào?" → top-1 `rag-001`; câu hỏi faithfulness mới →
-  top-1 `eval-003`, cả hai đều status `OK` và chứa đúng citation mong đợi.
-- Đã chạy `python3 -m pytest tests/ -q` — toàn bộ 4 test pass (bao gồm
-  `test_evaluation_report_has_quality_metrics` với số case động, hiện là 20).
-- Không thay đổi gì khác ngoài 3 điểm review đã nêu; các phần khác của `data/knowledge_base.jsonl`
-  và `data/eval.jsonl` (tổng số doc/case, các case còn lại) giữ nguyên như vòng trước.
+- Không đụng tới file/logic ngoài phạm vi 3 việc yêu cầu trong vòng review này (không sửa `api.py`, `answering.py`, `pyproject.toml`, README, v.v.).
+- Đánh đổi: với `0 < alpha < 1`, cap `min(lexical_score, 1.0)` trong vùng blend vẫn giữ nguyên như thiết kế trước (không đổi công thức trộn giữa) — theo đúng khuyến nghị của review là ưu tiên bypass đơn giản ở 2 đầu mút thay vì thiết kế lại toàn bộ công thức chuẩn hoá cho vùng giữa. Nếu sau này cần alpha trung gian với contract chặt hơn nữa, có thể cân nhắc chuẩn hoá riêng biệt (ví dụ min-max theo từng nhánh trước khi trộn) — không nằm trong phạm vi vòng sửa này.
+- TODO còn lại (ngoài phạm vi vòng này, chỉ ghi chú cho người đọc sau): chưa có bộ đo cosine distribution tự động hoá dưới dạng script/test riêng — số đo ở trên được đo thủ công một lần trong quá trình review trước; nếu model hoặc dữ liệu eval thay đổi trong tương lai, nên đo lại trước khi tin tưởng ngưỡng 0.3.

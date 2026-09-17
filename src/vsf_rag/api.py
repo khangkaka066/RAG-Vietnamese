@@ -6,13 +6,13 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from .answering import GroundedAnswerEngine
-from .retrieval import LexicalRetriever, load_documents
+from .retrieval import build_retriever, load_documents
 from .tools import ToolRegistry
 
 
 ROOT = Path(__file__).resolve().parents[2]
 documents = load_documents(ROOT / "data" / "knowledge_base.jsonl")
-engine = GroundedAnswerEngine(LexicalRetriever(documents))
+engine = GroundedAnswerEngine(build_retriever(documents))
 tools = ToolRegistry()
 tools.register(
     "list_sources",
@@ -35,7 +35,12 @@ class ToolRequest(BaseModel):
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "documents": len(documents), "version": app.version}
+    return {
+        "status": "ok",
+        "documents": len(documents),
+        "version": app.version,
+        "retriever": type(engine.retriever).__name__,
+    }
 
 
 @app.post("/query")

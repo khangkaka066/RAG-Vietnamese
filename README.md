@@ -21,7 +21,7 @@ This project targets the main capabilities requested in the job description:
 Documents (JSONL)
         |
         v
-Document loader -> Vietnamese lexical retriever -> Context selector
+Document loader -> Retriever (pluggable: lexical | embedding | hybrid) -> Context selector
                                                         |
                                                         v
                                Extractive answer generator + citations
@@ -32,7 +32,30 @@ Document loader -> Vietnamese lexical retriever -> Context selector
 User query -> Tool router -> registered domain tool (when applicable)
 ```
 
-The current implementation is a deterministic baseline. A future milestone will add an interchangeable LLM provider, embeddings, reranking, and online experiment tracking without changing the API contract.
+The retriever is selected via `build_retriever(...)` and defaults to the deterministic
+lexical (TF-IDF-style) baseline everywhere (app, Docker, CI) so the service stays fully
+offline out of the box. A Vietnamese sentence-embedding retriever
+(`bkai-foundation-models/vietnamese-bi-encoder`, via `sentence-transformers`) and a
+hybrid retriever (weighted lexical + cosine score) are available as opt-in modes. A
+future milestone will add an interchangeable LLM provider, reranking, and online
+experiment tracking without changing the API contract.
+
+### Enabling embedding / hybrid retrieval
+
+```bash
+pip install -e '.[embeddings]'   # optional, pulls in sentence-transformers/torch
+VSF_RETRIEVER=hybrid uvicorn vsf_rag.api:app --app-dir src --reload
+# VSF_RETRIEVER accepts: lexical (default) | embedding | hybrid
+```
+
+`GET /health` reports the active retriever class (`"retriever": "LexicalRetriever"`,
+`"EmbeddingRetriever"`, or `"HybridRetriever"`) for quick verification.
+
+Compare hit-rate/MRR@3 across all three modes on the checked-in eval set:
+
+```bash
+python scripts/compare_retrievers.py
+```
 
 ## Quick start
 

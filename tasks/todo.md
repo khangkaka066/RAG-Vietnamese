@@ -12,11 +12,11 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Mở rộng `data/knowledge_base.jsonl` và `data/eval.jsonl` (hiện chỉ 5 dòng — cần đủ đa dạng để số liệu eval có ý nghĩa)
 
 ## Phase 1 — Embedding retrieval (thay lexical-only)
-- [ ] Thêm `EmbeddingRetriever` trong `src/vsf_rag/retrieval.py` (hoặc file mới `retrieval_embedding.py`)
+- [x] Thêm `EmbeddingRetriever` trong `src/vsf_rag/retrieval.py` (hoặc file mới `retrieval_embedding.py`)
   - Input: query string, danh sách document chunks
   - Output: top-k chunks kèm cosine similarity score
-- [ ] Giữ retriever lexical (BM25) hiện tại làm fallback/so sánh — implement **hybrid** (kết hợp điểm) hoặc cho phép chọn qua config
-- [ ] Unit test: so sánh hit-rate lexical vs embedding trên `data/eval.jsonl`
+- [x] Giữ retriever lexical (BM25) hiện tại làm fallback/so sánh — implement **hybrid** (kết hợp điểm) hoặc cho phép chọn qua config
+- [x] Unit test: so sánh hit-rate lexical vs embedding trên `data/eval.jsonl`
 
 ## Phase 2 — LLM-based generation (thay extractive rule-based)
 - [ ] Thiết kế `LLMProvider` interface (`generate(prompt, context) -> answer`) trong `src/vsf_rag/llm.py`

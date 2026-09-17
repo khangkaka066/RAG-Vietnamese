@@ -1,0 +1,5 @@
+{"query":"RAG hoạt động như thế nào?","expected_doc_ids":["rag-001"],"required_terms":["truy xuất","context","trích dẫn"]}
+{"query":"Đánh giá LLM cần đo những gì?","expected_doc_ids":["eval-001"],"required_terms":["faithfulness","độ trễ","citation"]}
+{"query":"Quality gate của pipeline ML kiểm tra gì?","expected_doc_ids":["mlops-001"],"required_terms":["schema","latency","tái lập"]}
+{"query":"Agent gọi tool cần có những cơ chế an toàn nào?","expected_doc_ids":["agent-001"],"required_terms":["schema","timeout","log"]}
+{"query":"API suy luận cần có endpoint và trạng thái nào?","expected_doc_ids":["api-001"],"required_terms":["health","unavailable","timeout"]}

@@ -2,18 +2,23 @@
 
 Status: **In Progress**
 
-A production-oriented portfolio project for the VSF AI Engineer role. It is a small, provider-agnostic service for Vietnamese document retrieval, grounded answers, citations, tool calls, and repeatable evaluation.
+A small, provider-agnostic service for Vietnamese document retrieval, grounded answers, citations, tool calls, and repeatable evaluation.
 
-## Why this project
+## Ứng dụng thực tế
 
-This project targets the main capabilities requested in the job description:
+Sau khi hoàn thiện, kiến trúc này có thể áp dụng cho các bài toán cần tra cứu
+và trả lời dựa trên kho tài liệu tiếng Việt nội bộ, ví dụ:
 
-- NLP and Vietnamese text understanding
-- RAG-style retrieval and grounded responses
-- Agent/tool-use architecture
-- FastAPI inference API
-- JSONL evaluation data and measurable quality gates
-- Docker, pytest, and CI-ready project structure
+- Trợ lý tra cứu chính sách/quy trình nội bộ doanh nghiệp (HR, pháp lý, vận hành)
+- Chatbot hỗ trợ khách hàng dựa trên tài liệu sản phẩm/FAQ, có trích dẫn nguồn
+  để kiểm chứng thay vì trả lời "ảo giác"
+- Công cụ tìm kiếm ngữ nghĩa cho tài liệu kỹ thuật, hợp đồng, hoặc cơ sở tri
+  thức nội bộ khi tìm kiếm từ khóa thông thường không đủ chính xác
+- Nền tảng để mở rộng thành agent có khả năng gọi tool (tra cứu số liệu, gọi
+  API nghiệp vụ) thay vì chỉ trả lời tĩnh
+- Bộ khung đánh giá (retrieval hit-rate, citation coverage, faithfulness) để
+  đo lường và cải thiện chất lượng hệ thống RAG một cách có kiểm chứng, thay
+  vì đánh giá cảm tính
 
 ## Architecture
 

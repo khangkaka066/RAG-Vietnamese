@@ -1,6 +1,11 @@
-The data and evaluation changes appear to satisfy the stated metrics, but the review wrapper now has a persistent Git index side effect that can disrupt the handoff workflow. This should be fixed before considering the patch correct.
+Phần dữ liệu Phase 0 đạt yêu cầu: 29 documents, 20 eval cases; schema, id và required_terms hợp lệ. Kiểm tra độc lập cho thấy pytest 4 passed và run_eval có các metric đều 1.0.
 
-Review comment:
+Tuy nhiên chưa thể commit:
+- Kế hoạch chỉ cho phép sửa data, test và tasks/todo.md (`.bangiao/ke-hoach.md:47-53`), nhưng diff còn sửa `scripts/codex_review.sh`, `.gitignore` và `.bangiao/danh-gia.md`.
+- `scripts/codex_review.sh:57` đổi model đã pin từ `gpt-5.5` sang `gpt-5.6-luna`; kết quả test không kiểm tra wrapper. Model không tương thích có thể làm `/ship` thất bại trước khi tạo verdict.
+- `git add -A -N` tại dòng 13 làm thay đổi index. Nếu Codex lỗi/bị ngắt, trap dòng 17 không reset index; nếu thành công, `git reset --quiet -- .` dòng 66 reset cả các thay đổi staged có sẵn, trái với cam kết review read-only.
+- `.bangiao/danh-gia.md:5` ghi sai vị trí lỗi (`:25` thay vì dòng thực tế `:57`), cho thấy artifact review đã lỗi thời.
 
-- [P2] Avoid mutating the Git index during review — /Users/nguyenvokhang/Downloads/vsf-vietnamese-rag-evaluation/scripts/codex_review.sh:12-12
-  When this wrapper is run from a tree with untracked files, `git add -A -N` leaves intent-to-add entries in the user's index even though the script is advertised as review-only/read-only. That changes `git status` and can affect subsequent diffs or commits after the review exits or fails; it also expands the change scope beyond the handoff plan's allowed files (`.bangiao/ke-hoach.md:47-53`). Use a non-mutating way to surface untracked diffs or clean up the index afterward.
+Không phát hiện lỗi logic retrieval/answering hoặc vấn đề bảo mật nghiêm trọng mức CHAN, nhưng cần Coder xử lý scope và wrapper trước khi commit.
+
+PHAN QUYET: CAN SUA

@@ -28,11 +28,11 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Cập nhật `answering.py` (`build_answer_engine`) để gọi qua interface này thay vì rule-based cũ (giữ rule-based làm fallback tự động khi thiếu `OPENROUTER_API_KEY` hoặc khi `LLMError` — hữu ích cho CI/demo offline)
 
 ## Phase 3 — Agent / tool-use tối thiểu
-- [ ] Định nghĩa 1-2 tool thật trong `tools.py` (vd: tính toán, tra cứu ngày giờ, hoặc gọi 1 API public đơn giản)
+- [x] Định nghĩa 1-2 tool thật trong `tools.py` (vd: tính toán, tra cứu ngày giờ, hoặc gọi 1 API public đơn giản)
   - Input: câu hỏi được router phân loại là "cần tool"
   - Output: kết quả tool + log trace (tool nào được gọi, tham số gì, kết quả gì)
-- [ ] Router: LLM hoặc rule đơn giản quyết định dùng RAG hay tool
-- [ ] Log trace ra response để minh bạch quá trình quyết định (phục vụ demo/portfolio)
+- [x] Router: LLM hoặc rule đơn giản quyết định dùng RAG hay tool
+- [x] Log trace ra response để minh bạch quá trình quyết định (phục vụ demo/portfolio)
 
 ## Phase 4 — Evaluation nâng cấp (RAGAS-style)
 - [ ] Retrieval: hit-rate, MRR@k

@@ -23,20 +23,29 @@ retrieving and answering from an internal Vietnamese document store, such as:
 ## Architecture
 
 ```text
-Documents (JSONL)
-        |
-        v
-Document loader -> Retriever (pluggable: lexical | embedding | hybrid) -> Context selector
-                                                        |
-                                                        v
-                     LLM generator (OpenRouter) with citations,
-                     falling back to the extractive generator when no
-                     OPENROUTER_API_KEY is set or the LLM call fails
-                                                        |
-                                                        v
-                                      FastAPI /query and /evaluate
-
-User query -> Tool router -> registered domain tool (when applicable)
+                                   User query
+                                       |
+                                       v
+                     RuleRouter (rag vs tool, rule-based, offline)
+                            |                       |
+                    route == "rag"          route == "tool"
+                            |                       |
+                            v                       v
+       Document loader -> Retriever          Registered tool (calculate |
+       (lexical | embedding | hybrid)        current_datetime | ...) via
+                 |                            ToolRegistry.call_with_trace
+                 v                                    |
+       LLM generator (OpenRouter) with citations,      |
+       falling back to the extractive generator        |
+       when no OPENROUTER_API_KEY is set or the         |
+       LLM call fails                                   |
+                 |                                       |
+                 +-------------------+--------------------+
+                                     v
+                     Answer (route, route_reason, tool_trace)
+                                     |
+                                     v
+                          FastAPI /query, /tools, /tools/call, /evaluate
 ```
 
 The retriever is selected via `build_retriever(...)` and defaults to the deterministic
@@ -83,6 +92,51 @@ Compare hit-rate/MRR@3 across all three modes on the checked-in eval set:
 ```bash
 python scripts/compare_retrievers.py
 ```
+
+## Agent / tool routing
+
+Every `/query` call first passes through a deterministic, offline **rule-based router**
+(`RuleRouter` in `src/vsf_rag/router.py`) that classifies the query as either `"rag"`
+(the Phase 1/2 retrieval+generation pipeline, unchanged) or `"tool"` (a registered tool
+handles the query directly, with no retrieval call at all). Two tools are registered by
+default (`src/vsf_rag/tools.py`):
+
+- `calculate(expression)` — evaluates a whitelisted arithmetic expression
+  (`+ - * / // % **`, parentheses) via a restricted `ast` walker. No `eval()`/`exec()`
+  is ever used, so names, calls, attributes, and imports are always rejected.
+- `current_datetime(timezone)` — looks up the current date/time in an IANA timezone
+  (stdlib `zoneinfo`, defaults to `Asia/Ho_Chi_Minh`).
+
+Every tool invocation (successful or not) is captured as a `ToolCallTrace` and returned
+in the response, so the decision process stays fully auditable:
+
+```json
+{
+  "query": "tính 2+3*4",
+  "answer": "Kết quả: 2+3*4 = 14.",
+  "status": "OK",
+  "generator": "tool",
+  "route": "tool",
+  "route_reason": "Câu hỏi là một biểu thức số học; dùng tool calculate.",
+  "tool_trace": [
+    {"tool": "calculate", "arguments": {"expression": "2+3*4"}, "result": {"expression": "2+3*4", "result": 14}, "error": null, "duration_ms": 0.04}
+  ]
+}
+```
+
+A tool failure (e.g. `"tính 1/0"`) never crashes the API: it returns `status:
+"UNAVAILABLE"` with the failure captured in `tool_trace[0]["error"]`. `GET /tools` and
+`POST /tools/call` (the router and these endpoints share one `ToolRegistry`) let you
+list/call tools directly; `POST /tools/call` returns `404` for an unknown tool name and
+`400` for a `ToolError`/bad-argument failure instead of a `500`.
+
+**Limitations**: the router is a small set of hand-written rules (keyword/regex
+matching), not an LLM performing function-calling/tool-selection -- it is deliberately
+simple and fully offline, and can be wrong on phrasing it wasn't written for. It does
+not chain multiple tool calls or mix a tool result with retrieved context in one
+answer. Constructing `GroundedAnswerEngine` directly (bypassing `build_answer_engine`)
+leaves `router`/`tools` unset and keeps the old "always rag" behavior; passing
+`enable_router=False` to `build_answer_engine` disables the tool-use path explicitly.
 
 ## Quick start
 
@@ -133,5 +187,7 @@ docker run --rm -p 8000:8000 vietnamese-rag-eval
    Done: OpenRouter-backed `LLMProvider`, with automatic extractive fallback.
 3. Add Vietnamese RAG faithfulness and answer-relevance evaluation.
 4. Add MLflow/W&B experiment tracking and latency metrics.
-5. Add a tool-using agent with explicit planning, tool-call validation, and trace logging.
+5. ~~Add a tool-using agent with explicit planning, tool-call validation, and trace logging.~~
+   Done: rule-based router + `calculate`/`current_datetime` tools with full call-trace logging
+   (see "Agent / tool routing" above).
 6. Add GitHub Actions, OpenAPI examples, and a small deployed demo.

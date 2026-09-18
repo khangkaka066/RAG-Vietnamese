@@ -27,12 +27,6 @@
 > ships with a repeatable, RAGAS-style evaluation harness — offline by
 > default, LLM-backed (OpenRouter) when a key is configured.
 
-![Demo: real /query responses for a tool-routed and a RAG-routed request](docs/demo.gif)
-
-*Actual terminal output captured against the locally running service — not a mock-up.
-First a numeric query routed to the `calculate` tool, then a Vietnamese question
-routed to RAG and answered with a citation.*
-
 **Why this exists:** most RAG demos stop at "retrieve + ask an LLM." This
 project treats evaluation and routing as first-class: every answer carries
 its citations and its routing decision, and quality is a number you can gate
@@ -48,7 +42,7 @@ CI on (`scripts/check_eval_gate.py`), not a vibe.
 | Evaluation as a gate | Measures hit-rate, MRR, citation coverage, faithfulness, relevancy, and latency in CI. |
 | Production-shaped API | FastAPI, OpenAPI examples, Docker healthcheck, non-root container, and pluggable providers. |
 
-The visual demo above is a static overview of the two main request paths. The GIF below is captured from the running local API.
+The visual demo above is a UTF-8 SVG overview of the two main request paths. It can be opened directly from [`docs/demo.svg`](docs/demo.svg).
 
 **Real eval numbers** (checked-in 20-case set, offline lexical + extractive
 baseline — see [Evaluation API](#evaluation-api) for the full table and the

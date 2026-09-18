@@ -165,6 +165,23 @@ Run the evaluation set:
 python scripts/run_eval.py
 ```
 
+The report includes retrieval hit-rate@k, MRR@k, citation coverage, per-stage
+latency (retrieval / generation / total, mean + p95), and two RAGAS-style
+generation metrics computed with an **offline, IDF-weighted lexical
+heuristic** (not an LLM-as-judge):
+
+- `faithfulness` — how much of the answer's content is grounded in the
+  retrieved context actually shown to the generator.
+- `answer_relevancy` — how much of the query's content the answer addresses.
+
+To also write the report to disk and log it to MLflow (`pip install -e
+'.[tracking]'` first):
+
+```bash
+python scripts/run_eval.py --top-k 3 \
+  --json-out reports/eval.json --csv-out reports/eval.csv --mlflow
+```
+
 ## Docker
 
 ```bash
@@ -174,9 +191,11 @@ docker run --rm -p 8000:8000 vietnamese-rag-eval
 
 ## Current quality gates
 
-- Retrieval hit rate on the checked-in evaluation set
+- Retrieval hit-rate@k and MRR@k on the checked-in evaluation set
 - Answer keyword coverage
 - Citation coverage
+- Faithfulness and answer relevancy (offline lexical heuristic)
+- Per-stage latency (retrieval / generation / total)
 - Unavailable behavior when evidence is insufficient
 - Unit tests for tokenization, ranking, evaluation, and failure handling
 
@@ -185,8 +204,10 @@ docker run --rm -p 8000:8000 vietnamese-rag-eval
 1. Add multilingual embedding retrieval and a cross-encoder reranker.
 2. ~~Add an LLM provider interface with local-model and API-backed implementations.~~
    Done: OpenRouter-backed `LLMProvider`, with automatic extractive fallback.
-3. Add Vietnamese RAG faithfulness and answer-relevance evaluation.
-4. Add MLflow/W&B experiment tracking and latency metrics.
+3. ~~Add Vietnamese RAG faithfulness and answer-relevance evaluation.~~
+   Done: offline IDF-weighted lexical heuristic (see "Run the evaluation set" above).
+4. ~~Add MLflow/W&B experiment tracking and latency metrics.~~
+   Done: `--mlflow` flag on `scripts/run_eval.py`, retrieval/generation/total latency in the report.
 5. ~~Add a tool-using agent with explicit planning, tool-call validation, and trace logging.~~
    Done: rule-based router + `calculate`/`current_datetime` tools with full call-trace logging
    (see "Agent / tool routing" above).

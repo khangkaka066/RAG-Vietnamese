@@ -35,11 +35,11 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Log trace ra response để minh bạch quá trình quyết định (phục vụ demo/portfolio)
 
 ## Phase 4 — Evaluation nâng cấp (RAGAS-style)
-- [ ] Retrieval: hit-rate, MRR@k
-- [ ] Generation: faithfulness (câu trả lời có bám context không), answer relevancy
-- [ ] Citation coverage (giữ từ bản cũ)
-- [ ] Latency per stage (retrieval / generation / total)
-- [ ] Xuất kết quả eval ra file (json/csv) + log vào MLflow/W&B đã chọn ở Phase 0
+- [x] Retrieval: hit-rate, MRR@k
+- [x] Generation: faithfulness (câu trả lời có bám context không), answer relevancy
+- [x] Citation coverage (giữ từ bản cũ)
+- [x] Latency per stage (retrieval / generation / total)
+- [x] Xuất kết quả eval ra file (json/csv) + log vào MLflow/W&B đã chọn ở Phase 0
 
 ## Phase 5 — API, Docker, CI (giữ + hoàn thiện)
 - [ ] Đảm bảo `/query`, `/evaluate` hoạt động với pipeline mới, cập nhật OpenAPI examples

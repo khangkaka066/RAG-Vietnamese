@@ -20,6 +20,9 @@ dev = [
 embeddings = [
   "sentence-transformers>=3.0",
 ]
+tracking = [
+  "mlflow>=2.12",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

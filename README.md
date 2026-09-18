@@ -32,6 +32,11 @@ project treats evaluation and routing as first-class: every answer carries
 its citations and its routing decision, and quality is a number you can gate
 CI on (`scripts/check_eval_gate.py`), not a vibe.
 
+![Demo: tool routing and grounded Vietnamese RAG](docs/demo.gif)
+
+The GIF is rendered from the UTF-8 SVG demo and shows the two main request paths
+without relying on a terminal font or locale.
+
 ## What you get
 
 | Capability | What it does |
@@ -42,7 +47,7 @@ CI on (`scripts/check_eval_gate.py`), not a vibe.
 | Evaluation as a gate | Measures hit-rate, MRR, citation coverage, faithfulness, relevancy, and latency in CI. |
 | Production-shaped API | FastAPI, OpenAPI examples, Docker healthcheck, non-root container, and pluggable providers. |
 
-The visual demo above is a UTF-8 SVG overview of the two main request paths. It can be opened directly from [`docs/demo.svg`](docs/demo.svg).
+The visual demo above is rendered from [`docs/demo.svg`](docs/demo.svg), which can also be opened directly in a browser.
 
 **Real eval numbers** (checked-in 20-case set, offline lexical + extractive
 baseline — see [Evaluation API](#evaluation-api) for the full table and the

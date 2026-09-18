@@ -48,9 +48,9 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Cập nhật `README.md`: kiến trúc mới, cách chạy, số liệu eval mẫu
 
 ## Phase 6 — Polish cho CV/portfolio
-- [ ] Viết 1 đoạn mô tả ngắn (README) nêu rõ: vấn đề giải quyết, kiến trúc, số liệu eval đạt được
-- [ ] Chụp/ghi demo ngắn hoặc GIF cho README
-- [ ] Đối chiếu lại với từng gạch đầu dòng JD, đảm bảo README nêu rõ ánh xạ (giúp khi phỏng vấn dễ trình bày)
+- [x] Viết 1 đoạn mô tả ngắn (README) nêu rõ: vấn đề giải quyết, kiến trúc, số liệu eval đạt được
+- [x] Chụp/ghi demo ngắn hoặc GIF cho README
+- [x] Đối chiếu lại với từng gạch đầu dòng JD, đảm bảo README nêu rõ ánh xạ (giúp khi phỏng vấn dễ trình bày)
 
 ## Review (điền sau khi hoàn thành)
 - Kết quả đạt được: Phase 5 hoàn thành — `POST /evaluate` chạy được harness Phase 4 qua HTTP
@@ -68,3 +68,20 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
   CI, không push image/deploy); `docker build`/`docker run` chưa verify được trong môi trường
   thực thi task này vì Docker daemon không chạy sẵn ở sandbox — cần verify thủ công trước khi
   release.
+
+- Phase 6 hoàn thành: README thêm elevator pitch + 3 badge mới (Python, MIT
+  License, Docker) bên cạnh badge CI; sơ đồ kiến trúc ASCII cũ thay bằng
+  flowchart Mermaid (render ảnh thật trên GitHub, không cần asset binary
+  riêng); thêm `docs/demo.gif` — GIF terminal ghi lại 2 request `/query` thật
+  chạy trên service đang chạy local (route=tool cho câu tính toán, route=rag
+  kèm citation cho câu hỏi tiếng Việt), dựng bằng Pillow từ response JSON
+  thật (không phải dữ liệu giả) vì Chrome extension (`gif_creator`) không kết
+  nối được trong môi trường này và các tool ghi terminal (`asciinema`, `vhs`,
+  `agg`) không có sẵn; thêm section "JD → project mapping" (bảng 7 dòng ánh
+  xạ từng gạch đầu dòng JD AI Engineer @ VinSmart Future tới file/section cụ
+  thể trong repo).
+- Điểm còn thiếu: GIF là mô phỏng terminal render bằng Pillow (không phải
+  screen-recording thật của trình duyệt/Swagger UI) do giới hạn môi trường —
+  nội dung/response bên trong là thật 100%, chỉ phần trình bày là dựng lại;
+  nên cân nhắc quay lại bằng Chrome/asciinema khi có môi trường phù hợp nếu
+  muốn một bản ghi màn hình thực sự.

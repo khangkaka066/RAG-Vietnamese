@@ -1,14 +1,40 @@
 # Vietnamese RAG & LLM Evaluation Service
 
 [![CI](https://github.com/khangkaka066/RAG-Vietnamese/actions/workflows/ci.yml/badge.svg)](https://github.com/khangkaka066/RAG-Vietnamese/actions/workflows/ci.yml)
+[![Python 3.10 | 3.11](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-informational)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
+
+> A provider-agnostic **Vietnamese RAG + agentic tool-routing** service that
+> answers grounded in retrieved evidence (with citations), falls through to a
+> tool (calculator, clock) when a query doesn't need retrieval at all, and
+> ships with a repeatable, RAGAS-style evaluation harness — offline by
+> default, LLM-backed (OpenRouter) when a key is configured.
+
+![Demo: real /query responses for a tool-routed and a RAG-routed request](docs/demo.gif)
+
+*Actual terminal output captured against the locally running service — not a mock-up.
+First a numeric query routed to the `calculate` tool, then a Vietnamese question
+routed to RAG and answered with a citation.*
+
+**Why this exists:** most RAG demos stop at "retrieve + ask an LLM." This
+project treats evaluation and routing as first-class: every answer carries
+its citations and its routing decision, and quality is a number you can gate
+CI on (`scripts/check_eval_gate.py`), not a vibe.
+
+**Real eval numbers** (checked-in 20-case set, offline lexical + extractive
+baseline — see [Evaluation API](#evaluation-api) for the full table and the
+LLM/embedding variants):
+
+| `retrieval_hit_rate` | `retrieval_mrr_at_k` | `citation_coverage` | `faithfulness` | `answer_relevancy` |
+| --- | --- | --- | --- | --- |
+| 1.0 | 1.0 | 1.0 | ~0.94 | ~0.61 |
 
 Status: **Phase 5 (API, Docker, CI) complete** for CI/OpenAPI/Docker — GitHub
 Actions, OpenAPI examples, and a non-root Docker image are all implemented.
 Roadmap items 2-5 are done; item 1 has multilingual embedding retrieval but
 not yet a cross-encoder reranker; item 6 is done except for the hosted demo
 deployment, which is still outstanding (see Roadmap #6).
-
-A small, provider-agnostic service for Vietnamese document retrieval, grounded answers, citations, tool calls, and repeatable evaluation.
 
 ## Real-world applications
 
@@ -28,31 +54,32 @@ retrieving and answering from an internal Vietnamese document store, such as:
 
 ## Architecture
 
-```text
-                                   User query
-                                       |
-                                       v
-                     RuleRouter (rag vs tool, rule-based, offline)
-                            |                       |
-                    route == "rag"          route == "tool"
-                            |                       |
-                            v                       v
-       Document loader -> Retriever          Registered tool (calculate |
-       (lexical | embedding | hybrid)        current_datetime | ...) via
-                 |                            ToolRegistry.call_with_trace
-                 v                                    |
-       LLM generator (OpenRouter) with citations,      |
-       falling back to the extractive generator        |
-       when no OPENROUTER_API_KEY is set or the         |
-       LLM call fails                                   |
-                 |                                       |
-                 +-------------------+--------------------+
-                                     v
-                     Answer (route, route_reason, tool_trace)
-                                     |
-                                     v
-                          FastAPI /query, /tools, /tools/call, /evaluate
+```mermaid
+flowchart TD
+    U["User query"] --> API["FastAPI\n/query · /tools/call · /evaluate"]
+    API --> R{"RuleRouter\n(rule-based, offline)"}
+
+    R -- "route = rag" --> DL["Document loader"] --> RET["Retriever\nlexical · embedding · hybrid"]
+    RET --> GEN["Generator\nOpenRouter LLM (citations required)\n↳ falls back to extractive if no API key / LLMError"]
+
+    R -- "route = tool" --> TR["ToolRegistry.call_with_trace\ncalculate · current_datetime"]
+
+    GEN --> ANS["Answer\nroute · route_reason · tool_trace · citations"]
+    TR --> ANS
+    ANS --> API
+
+    classDef svc fill:#1f6feb,stroke:#1f6feb,color:#fff;
+    classDef data fill:#2ea043,stroke:#2ea043,color:#fff;
+    classDef decision fill:#d29922,stroke:#d29922,color:#111;
+    class API,GEN,TR svc;
+    class DL,RET,ANS data;
+    class R decision;
 ```
+
+Everything downstream of `RuleRouter` is swappable behind an interface —
+`Retriever`, `LLMProvider`/extractive generator, and `Tool` are all pluggable,
+so the same request path works fully offline (CI/Docker default) or LLM/
+embedding-backed (opt-in via env vars below) without changing the API.
 
 The retriever is selected via `build_retriever(...)` and defaults to the deterministic
 lexical (TF-IDF-style) baseline everywhere (app, Docker, CI) so the service stays fully
@@ -274,6 +301,22 @@ curl -X POST http://localhost:8000/evaluate -d '{"top_k":3}' -H 'Content-Type: a
 - Per-stage latency (retrieval / generation / total)
 - Unavailable behavior when evidence is insufficient
 - Unit tests for tokenization, ranking, evaluation, and failure handling
+
+## JD → project mapping
+
+Built with the **AI Engineer @ VinSmart Future** role in mind (NLP,
+generative AI, agentic systems, ML Ops, production APIs). How each
+requirement is covered:
+
+| JD requirement | Where it shows up here |
+| --- | --- |
+| NLP / RAG pipelines / LLMs / text understanding | `src/vsf_rag/retrieval.py` (lexical + Vietnamese sentence-embedding retriever), `src/vsf_rag/llm.py` (OpenRouter `LLMProvider`) |
+| Generative AI, agent-based systems | `src/vsf_rag/router.py` (`RuleRouter`) + `src/vsf_rag/tools.py` (`ToolRegistry`, `calculate`/`current_datetime`) with full call-trace logging |
+| Deploying AI/ML models in production | `Dockerfile` (non-root, `HEALTHCHECK`), `src/vsf_rag/api.py` (FastAPI `/query`, `/tools`, `/tools/call`, `/evaluate`) |
+| Robust training/evaluation/inference pipelines, ML Ops practices | `scripts/run_eval.py`, `scripts/check_eval_gate.py` (CI quality gate), `--mlflow` experiment tracking |
+| API development / microservices / full-stack AI integration | OpenAPI examples + response models in `src/vsf_rag/api.py`, `.github/workflows/ci.yml` (pytest matrix + eval gate + Docker build) |
+| ML Ops bonus: MLflow, Docker, cloud-ready | MLflow logging in `scripts/run_eval.py`, single-stage Docker image, 12-factor env-var configuration |
+| Multi-domain adaptability | Provider-agnostic retriever/generator/tool interfaces — swapping domains means adding data + tools, not rewriting the pipeline |
 
 ## Roadmap
 

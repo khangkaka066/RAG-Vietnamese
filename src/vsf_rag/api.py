@@ -1,19 +1,33 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from .answering import GroundedAnswerEngine
+from .answering import build_answer_engine, GroundedAnswerEngine
 from .retrieval import build_retriever, load_documents
 from .tools import ToolRegistry
 
 
 ROOT = Path(__file__).resolve().parents[2]
 documents = load_documents(ROOT / "data" / "knowledge_base.jsonl")
-engine = GroundedAnswerEngine(build_retriever(documents))
 tools = ToolRegistry()
+
+
+@lru_cache(maxsize=1)
+def get_engine() -> GroundedAnswerEngine:
+    """Lazily build (and memoize) the process-lifetime answer engine.
+
+    Deliberately *not* built at module import time: ``build_answer_engine``
+    reads ``OPENROUTER_API_KEY``/``OPENROUTER_MODEL`` from the environment,
+    and pytest imports this module during test *collection* -- before any
+    test's fixtures (e.g. the autouse env-cleanup fixture in
+    ``tests/conftest.py``) have run. Deferring construction to first use
+    ensures env-based credential isolation in tests actually takes effect.
+    """
+    return build_answer_engine(build_retriever(documents))
 tools.register(
     "list_sources",
     "List the sources currently indexed by the service.",
@@ -35,17 +49,19 @@ class ToolRequest(BaseModel):
 
 @app.get("/health")
 def health() -> dict:
+    engine = get_engine()
     return {
         "status": "ok",
         "documents": len(documents),
         "version": app.version,
         "retriever": type(engine.retriever).__name__,
+        "generator": "llm" if engine.llm is not None else "extractive",
     }
 
 
 @app.post("/query")
 def query(request: QueryRequest) -> dict:
-    return engine.answer(request.query, request.top_k).to_dict()
+    return get_engine().answer(request.query, request.top_k).to_dict()
 
 
 @app.get("/tools")

@@ -19,12 +19,13 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Unit test: so sánh hit-rate lexical vs embedding trên `data/eval.jsonl`
 
 ## Phase 2 — LLM-based generation (thay extractive rule-based)
-- [ ] Thiết kế `LLMProvider` interface (`generate(prompt, context) -> answer`) trong `src/vsf_rag/llm.py`
-  - Input: query + retrieved context (list chunk + citation id)
+- [x] Thiết kế `LLMProvider` interface (`generate(query, context) -> LLMAnswer`) trong `src/vsf_rag/llm.py`
+  - Input: query + retrieved context (list `ContextChunk` với citation id)
   - Output: câu trả lời tiếng Việt + danh sách citation id được dùng
-- [ ] Implement 1 provider cụ thể (API-backed) theo lựa chọn ở Phase 0
-- [ ] Thêm prompt template ép model trích dẫn nguồn và trả lời "không đủ dữ liệu" khi context rỗng/không liên quan
-- [ ] Cập nhật `answering.py` để gọi qua interface này thay vì rule-based cũ (giữ rule-based làm fallback không cần API key — hữu ích cho CI/demo offline)
+- [x] Implement `OpenRouterProvider` (API-backed, OpenAI-compatible `/chat/completions`) theo lựa chọn ở Phase 0.
+      Model mặc định khi không set `OPENROUTER_MODEL`: `openrouter/free` (auto-router free chính thức của OpenRouter).
+- [x] Thêm prompt template (`SYSTEM_PROMPT_VI`) ép model trích dẫn nguồn và trả lời "không đủ dữ liệu" khi context rỗng/không liên quan
+- [x] Cập nhật `answering.py` (`build_answer_engine`) để gọi qua interface này thay vì rule-based cũ (giữ rule-based làm fallback tự động khi thiếu `OPENROUTER_API_KEY` hoặc khi `LLMError` — hữu ích cho CI/demo offline)
 
 ## Phase 3 — Agent / tool-use tối thiểu
 - [ ] Định nghĩa 1-2 tool thật trong `tools.py` (vd: tính toán, tra cứu ngày giờ, hoặc gọi 1 API public đơn giản)

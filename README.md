@@ -29,7 +29,9 @@ Documents (JSONL)
 Document loader -> Retriever (pluggable: lexical | embedding | hybrid) -> Context selector
                                                         |
                                                         v
-                               Extractive answer generator + citations
+                     LLM generator (OpenRouter) with citations,
+                     falling back to the extractive generator when no
+                     OPENROUTER_API_KEY is set or the LLM call fails
                                                         |
                                                         v
                                       FastAPI /query and /evaluate
@@ -41,9 +43,29 @@ The retriever is selected via `build_retriever(...)` and defaults to the determi
 lexical (TF-IDF-style) baseline everywhere (app, Docker, CI) so the service stays fully
 offline out of the box. A Vietnamese sentence-embedding retriever
 (`bkai-foundation-models/vietnamese-bi-encoder`, via `sentence-transformers`) and a
-hybrid retriever (weighted lexical + cosine score) are available as opt-in modes. A
-future milestone will add an interchangeable LLM provider, reranking, and online
-experiment tracking without changing the API contract.
+hybrid retriever (weighted lexical + cosine score) are available as opt-in modes.
+
+Answer generation is selected via `build_answer_engine(...)` and defaults to the
+same offline, extractive baseline unless `OPENROUTER_API_KEY` is set, in which case
+it calls an OpenRouter-hosted LLM (OpenAI-compatible `/chat/completions`) with a
+Vietnamese system prompt that restricts the model to the retrieved context and
+requires citation ids. Any LLM/network/parsing failure (`LLMError`) transparently
+falls back to the extractive generator, so the API never hard-fails because of the
+LLM provider. A future milestone will add reranking and online experiment tracking
+without changing the API contract.
+
+### Enabling LLM-based generation (OpenRouter)
+
+```bash
+cp .env.example .env
+# edit .env and set OPENROUTER_API_KEY (get one at https://openrouter.ai/keys)
+export $(grep -v '^#' .env | xargs)
+uvicorn vsf_rag.api:app --app-dir src --reload
+```
+
+`OPENROUTER_MODEL` is optional and defaults to `openrouter/free` (OpenRouter's
+official free auto-router). Without `OPENROUTER_API_KEY`, the service runs fully
+offline using the rule-based extractive generator -- no code change required.
 
 ### Enabling embedding / hybrid retrieval
 
@@ -107,7 +129,8 @@ docker run --rm -p 8000:8000 vietnamese-rag-eval
 ## Roadmap
 
 1. Add multilingual embedding retrieval and a cross-encoder reranker.
-2. Add an LLM provider interface with local-model and API-backed implementations.
+2. ~~Add an LLM provider interface with local-model and API-backed implementations.~~
+   Done: OpenRouter-backed `LLMProvider`, with automatic extractive fallback.
 3. Add Vietnamese RAG faithfulness and answer-relevance evaluation.
 4. Add MLflow/W&B experiment tracking and latency metrics.
 5. Add a tool-using agent with explicit planning, tool-call validation, and trace logging.

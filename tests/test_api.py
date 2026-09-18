@@ -123,3 +123,157 @@ def test_tools_call_calculate_succeeds() -> None:
     )
     assert response.status_code == 200
     assert response.json()["result"]["result"] == 4
+
+
+def test_evaluate_returns_metrics() -> None:
+    response = client.post("/evaluate", json={"top_k": 3})
+    assert response.status_code == 200
+
+    body = response.json()
+    assert body["cases"] == 20
+    for field in (
+        "retrieval_hit_rate",
+        "retrieval_mrr_at_k",
+        "citation_coverage",
+        "faithfulness",
+        "answer_relevancy",
+        "latency_ms",
+        "routes",
+    ):
+        assert field in body
+
+
+def test_evaluate_omits_details_by_default() -> None:
+    response = client.post("/evaluate", json={"top_k": 3})
+    assert response.status_code == 200
+    assert "details" not in response.json()
+
+
+def test_evaluate_include_details() -> None:
+    response = client.post("/evaluate", json={"top_k": 3, "include_details": True})
+    assert response.status_code == 200
+
+    body = response.json()
+    assert "details" in body
+    assert len(body["details"]) == body["cases"]
+
+
+def test_evaluate_with_inline_cases() -> None:
+    response = client.post(
+        "/evaluate",
+        json={
+            "top_k": 3,
+            "cases": [
+                {
+                    "query": "RAG cần trích dẫn nguồn như thế nào?",
+                    "expected_doc_ids": [],
+                    "required_terms": [],
+                }
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["cases"] == 1
+
+
+def test_evaluate_rejects_empty_cases_list() -> None:
+    response = client.post("/evaluate", json={"top_k": 3, "cases": []})
+    assert response.status_code == 422
+
+
+def test_evaluate_rejects_cases_over_limit() -> None:
+    """``cases`` is capped at 50 (Codex review round 3, finding #1): an
+    unbounded list is a cost/DoS risk once ``OPENROUTER_API_KEY`` is set,
+    since each case triggers one LLM call."""
+    case = {"query": "RAG cần trích dẫn nguồn như thế nào?"}
+    response = client.post("/evaluate", json={"top_k": 3, "cases": [case] * 51})
+    assert response.status_code == 422
+
+
+def test_evaluate_empty_eval_set_returns_400(monkeypatch) -> None:
+    """When ``cases`` is omitted and the checked-in eval set is empty,
+    ``evaluation.evaluate()`` raises ``ValueError`` -- the endpoint should
+    map that to 400 (a runtime/data condition), not 422 (a request-shape
+    validation failure, which is what an over-limit/empty *inline* ``cases``
+    list already gets from pydantic before the handler even runs)."""
+    monkeypatch.setattr(api_module, "get_eval_cases", lambda: ())
+    response = client.post("/evaluate", json={"top_k": 3})
+    assert response.status_code == 400
+
+
+def test_openapi_has_query_example() -> None:
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+
+    schema = response.json()
+    query_request_schema = schema["components"]["schemas"]["QueryRequest"]
+    assert "examples" in query_request_schema or "example" in query_request_schema
+
+
+def test_openapi_evaluate_response_schema_matches_evaluate_output() -> None:
+    """``/evaluate`` must advertise a real response schema/example -- not just
+    the generic ``dict`` FastAPI infers when no ``response_model`` is set
+    (Codex review round 3, finding #2)."""
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    schema = response.json()
+
+    evaluate_op = schema["paths"]["/evaluate"]["post"]
+    response_schema_ref = evaluate_op["responses"]["200"]["content"]["application/json"]["schema"]
+    assert response_schema_ref  # a $ref (or resolved schema), not empty
+
+    request_schema = schema["components"]["schemas"]["EvaluateRequest"]
+    assert "examples" in request_schema or "example" in request_schema
+
+    evaluate_response_schema = schema["components"]["schemas"]["EvaluateResponse"]
+    assert "examples" in evaluate_response_schema or "example" in evaluate_response_schema
+    for field in (
+        "retrieval_hit_rate",
+        "retrieval_mrr_at_k",
+        "citation_coverage",
+        "faithfulness",
+        "answer_relevancy",
+        "latency_ms",
+        "routes",
+        "details",
+    ):
+        assert field in evaluate_response_schema["properties"]
+
+    latency_stats_schema = schema["components"]["schemas"]["LatencyStats"]
+    for field in (
+        "retrieval_mean",
+        "retrieval_p95",
+        "generation_mean",
+        "generation_p95",
+        "total_mean",
+        "total_p95",
+    ):
+        assert field in latency_stats_schema["properties"]
+
+
+def test_evaluate_response_matches_real_evaluate_output() -> None:
+    """``EvaluateResponse`` must not drop or misname any key that
+    ``evaluation.evaluate()`` actually returns (Codex review round 3,
+    finding #2)."""
+    response = client.post("/evaluate", json={"top_k": 3, "include_details": True})
+    assert response.status_code == 200
+    body = response.json()
+
+    from vsf_rag.evaluation import evaluate as run_evaluate
+
+    real_report = run_evaluate(get_engine(), list(api_module.get_eval_cases()), top_k=3)
+    assert set(real_report.keys()) == set(body.keys())
+    assert set(real_report["latency_ms"].keys()) == set(body["latency_ms"].keys())
+
+
+def test_query_response_shape_matches_answer_dataclass() -> None:
+    """The ``QueryResponse`` model used for ``/query`` docs must not drop any
+    field ``Answer.to_dict()`` produces (see .bangiao/ke-hoach.md)."""
+    response = client.post("/query", json={"query": "tính 2+3*4"})
+    assert response.status_code == 200
+
+    body = response.json()
+    from vsf_rag.answering import Answer
+
+    expected_fields = {field for field in Answer.__dataclass_fields__}
+    assert expected_fields == set(body.keys())

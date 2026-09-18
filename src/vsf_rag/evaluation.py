@@ -11,6 +11,15 @@ from .metrics import answer_relevancy, build_idf, default_idf, faithfulness, mrr
 from .retrieval import Retriever, SearchResult
 
 
+def default_eval_path() -> Path:
+    """Path to the checked-in evaluation set (``data/eval.jsonl``).
+
+    Shared by ``api.py`` and ``scripts/run_eval.py`` so the project-root
+    resolution logic (``.../data/eval.jsonl``) lives in exactly one place.
+    """
+    return Path(__file__).resolve().parents[2] / "data" / "eval.jsonl"
+
+
 def load_eval_cases(path: str | Path) -> list[dict[str, Any]]:
     return [
         json.loads(line)

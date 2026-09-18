@@ -10,3 +10,4 @@ dist/
 .claude/
 mlruns/
 reports/
+.tmp_pytest/

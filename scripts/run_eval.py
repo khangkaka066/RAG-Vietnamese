@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from vsf_rag.answering import build_answer_engine
-from vsf_rag.evaluation import evaluate, load_eval_cases, write_csv_report, write_json_report
+from vsf_rag.evaluation import default_eval_path, evaluate, load_eval_cases, write_csv_report, write_json_report
 from vsf_rag.retrieval import build_retriever, load_documents
 
 
@@ -27,7 +27,7 @@ def main() -> None:
     documents = load_documents(ROOT / "data" / "knowledge_base.jsonl")
     retriever = build_retriever(documents, mode=args.retriever)
     engine = build_answer_engine(retriever)
-    cases = load_eval_cases(ROOT / "data" / "eval.jsonl")
+    cases = load_eval_cases(default_eval_path())
     report = evaluate(engine, cases, top_k=args.top_k)
 
     if args.json_out is not None:

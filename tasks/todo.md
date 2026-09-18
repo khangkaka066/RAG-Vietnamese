@@ -42,10 +42,10 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Xuất kết quả eval ra file (json/csv) + log vào MLflow/W&B đã chọn ở Phase 0
 
 ## Phase 5 — API, Docker, CI (giữ + hoàn thiện)
-- [ ] Đảm bảo `/query`, `/evaluate` hoạt động với pipeline mới, cập nhật OpenAPI examples
-- [ ] Cập nhật `Dockerfile` nếu thêm dependency mới (torch/sentence-transformers nặng — cân nhắc image size)
-- [ ] Thêm GitHub Actions chạy pytest + eval trên mỗi PR (roadmap mục 6 trong README cũ)
-- [ ] Cập nhật `README.md`: kiến trúc mới, cách chạy, số liệu eval mẫu
+- [x] Đảm bảo `/query`, `/evaluate` hoạt động với pipeline mới, cập nhật OpenAPI examples
+- [x] Cập nhật `Dockerfile` nếu thêm dependency mới (torch/sentence-transformers nặng — cân nhắc image size)
+- [x] Thêm GitHub Actions chạy pytest + eval trên mỗi PR (roadmap mục 6 trong README cũ)
+- [x] Cập nhật `README.md`: kiến trúc mới, cách chạy, số liệu eval mẫu
 
 ## Phase 6 — Polish cho CV/portfolio
 - [ ] Viết 1 đoạn mô tả ngắn (README) nêu rõ: vấn đề giải quyết, kiến trúc, số liệu eval đạt được
@@ -53,6 +53,18 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [ ] Đối chiếu lại với từng gạch đầu dòng JD, đảm bảo README nêu rõ ánh xạ (giúp khi phỏng vấn dễ trình bày)
 
 ## Review (điền sau khi hoàn thành)
-- Kết quả đạt được:
-- Số liệu eval trước/sau:
-- Điểm còn thiếu so với JD (nếu có):
+- Kết quả đạt được: Phase 5 hoàn thành — `POST /evaluate` chạy được harness Phase 4 qua HTTP
+  (mặc định 20 case checked-in, hỗ trợ `cases` tuỳ chỉnh, `include_details` để ẩn/hiện chi tiết
+  từng case); OpenAPI có `openapi_tags` + example cho `QueryRequest`/`ToolRequest`/`EvaluateRequest`
+  và response models (`QueryResponse`/`HealthResponse`/`ToolsResponse`/`ToolCallResponse`) khớp
+  100% field với `Answer.to_dict()`; `Dockerfile` single-stage non-root có `HEALTHCHECK` và
+  `ARG EXTRAS` cho biến thể embeddings; `.github/workflows/ci.yml` chạy matrix Python 3.10/3.11 +
+  eval offline + `scripts/check_eval_gate.py` (quality gate) + upload artifact + job `docker`
+  build-only; README cập nhật badge CI, mục "Evaluation API", "Docker", "Continuous Integration".
+- Số liệu eval trước/sau: không đổi so với Phase 4 (logic `evaluate()` không sửa) — lexical +
+  extractive trên 20 case: `retrieval_hit_rate=1.0`, `retrieval_mrr_at_k=1.0`,
+  `citation_coverage=1.0`, `faithfulness≈0.94`, `answer_relevancy≈0.61`.
+- Điểm còn thiếu so với JD (nếu có): chưa có demo deployment thật (chỉ Docker build-only trong
+  CI, không push image/deploy); `docker build`/`docker run` chưa verify được trong môi trường
+  thực thi task này vì Docker daemon không chạy sẵn ở sandbox — cần verify thủ công trước khi
+  release.

@@ -1,6 +1,12 @@
 # Vietnamese RAG & LLM Evaluation Service
 
-Status: **In Progress**
+[![CI](https://github.com/khangkaka066/RAG-Vietnamese/actions/workflows/ci.yml/badge.svg)](https://github.com/khangkaka066/RAG-Vietnamese/actions/workflows/ci.yml)
+
+Status: **Phase 5 (API, Docker, CI) complete** for CI/OpenAPI/Docker — GitHub
+Actions, OpenAPI examples, and a non-root Docker image are all implemented.
+Roadmap items 2-5 are done; item 1 has multilingual embedding retrieval but
+not yet a cross-encoder reranker; item 6 is done except for the hosted demo
+deployment, which is still outstanding (see Roadmap #6).
 
 A small, provider-agnostic service for Vietnamese document retrieval, grounded answers, citations, tool calls, and repeatable evaluation.
 
@@ -182,12 +188,82 @@ python scripts/run_eval.py --top-k 3 \
   --json-out reports/eval.json --csv-out reports/eval.csv --mlflow
 ```
 
+## Evaluation API
+
+The same evaluation harness is exposed over HTTP as `POST /evaluate`, so quality
+metrics can be pulled from a running service instead of only via the CLI script:
+
+```bash
+curl -X POST http://localhost:8000/evaluate \
+  -H 'Content-Type: application/json' \
+  -d '{"top_k":3}'
+```
+
+By default it scores the checked-in 20-case evaluation set (`data/eval.jsonl`)
+and returns the same top-level metrics as `scripts/run_eval.py`
+(`retrieval_hit_rate`, `retrieval_mrr_at_k`, `citation_coverage`, `faithfulness`,
+`answer_relevancy`, `latency_ms`, `routes`), omitting the verbose per-case
+`details` array unless `"include_details": true` is passed. Pass a `cases` list
+(1-50 items) to score a custom set instead of the checked-in one:
+
+```bash
+curl -X POST http://localhost:8000/evaluate \
+  -H 'Content-Type: application/json' \
+  -d '{"top_k":3,"cases":[{"query":"RAG cần trích dẫn nguồn như thế nào?"}]}'
+```
+
+**Operational warning**: `/evaluate` runs against the *same engine instance*
+serving `/query`, not a separate/mocked evaluator. If `OPENROUTER_API_KEY` is
+set, every case triggers one real LLM call — the default run makes 20 calls
+(and a custom `cases` list up to the 50-item cap could make 50), which is
+slower, costs money, and makes `faithfulness`/`answer_relevancy` non-
+deterministic across runs. Without an API key (the CI/offline default),
+generation falls back to the deterministic extractive path and stays free.
+
+Sample metrics on the checked-in eval set (lexical retriever, extractive
+generator, fully offline):
+
+| Metric | Value |
+| --- | --- |
+| `cases` | 20 |
+| `retrieval_hit_rate` | 1.0 |
+| `retrieval_mrr_at_k` | 1.0 |
+| `citation_coverage` | 1.0 |
+| `faithfulness` | ~0.94 |
+| `answer_relevancy` | ~0.61 |
+
 ## Docker
 
 ```bash
 docker build -t vietnamese-rag-eval .
 docker run --rm -p 8000:8000 vietnamese-rag-eval
 ```
+
+The image is single-stage (`python:3.11-slim`) since the default runtime
+configuration (`lexical` retriever, extractive generator fallback) needs no
+`torch`/`sentence-transformers`. Pass `--build-arg EXTRAS='[embeddings]'` to
+build a variant with the optional embedding retriever included. The container
+runs as a non-root user and exposes a `HEALTHCHECK` against `GET /health`.
+
+Verify the running container:
+
+```bash
+curl http://localhost:8000/health
+curl -X POST http://localhost:8000/query -d '{"query":"tính 2+3*4"}' -H 'Content-Type: application/json'
+curl -X POST http://localhost:8000/evaluate -d '{"top_k":3}' -H 'Content-Type: application/json'
+```
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs on every push/PR:
+
+- `test` job (matrix: Python 3.10 and 3.11) — `pytest -q`, then
+  `scripts/run_eval.py` offline (`VSF_RETRIEVER=lexical`, no API key), then
+  `scripts/check_eval_gate.py` enforces minimum thresholds on hit-rate, MRR@k,
+  citation coverage, and faithfulness (fails the build on regression); the
+  JSON/CSV report is uploaded as a build artifact.
+- `docker` job — build-only sanity check (`docker build .`) that the image
+  defined above still builds.
 
 ## Current quality gates
 
@@ -211,4 +287,7 @@ docker run --rm -p 8000:8000 vietnamese-rag-eval
 5. ~~Add a tool-using agent with explicit planning, tool-call validation, and trace logging.~~
    Done: rule-based router + `calculate`/`current_datetime` tools with full call-trace logging
    (see "Agent / tool routing" above).
-6. Add GitHub Actions, OpenAPI examples, and a small deployed demo.
+6. ~~Add GitHub Actions, OpenAPI examples, and a small deployed demo.~~
+   Done: `.github/workflows/ci.yml` (pytest matrix + offline eval + quality gate + Docker
+   build), `/query`/`/tools/call`/`/evaluate` OpenAPI request/response examples (see `/docs`),
+   non-root `Dockerfile` with `HEALTHCHECK`. A hosted demo deployment is still outstanding.

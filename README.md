@@ -201,6 +201,42 @@ python scripts/run_eval.py --top-k 3 \
   --json-out reports/eval.json --csv-out reports/eval.csv --mlflow
 ```
 
+
+## Developer memory (`devmem`)
+
+`devmem` records commands, errors, proposed fixes, and verification results.
+It is a local CLI, not an AI agent: it never calls an LLM or changes code by
+itself. After installing this repository, use it from the repository root:
+
+```bash
+devmem init
+devmem session start "Improve Vietnamese retrieval"
+devmem run -- pytest -q
+devmem session end
+devmem handoff
+```
+
+Use `devmem error record`, `devmem fix`, and `devmem verify` to retain a
+failure, the attempted remedy, and the command that confirmed the result. Run
+`devmem recall "query"` to search those local records.
+
+### Use devmem temporarily in another project
+
+Build the portable bundle from this repository, then extract it into the root
+of the target project:
+
+```bash
+python3 scripts/build_portable_devmem.py
+unzip dist/devmem-portable.zip -d /path/to/target-project
+cd /path/to/target-project
+python3 .devmem-tool/run.py init
+python3 .devmem-tool/run.py session start "Fix tracker ID instability"
+```
+
+The portable launcher needs only Python 3.10+, does not run Docker or install
+packages, and stores all its SQLite data in `.devmem-tool/state/`. Remove
+`rm -rf .devmem-tool` after work to remove the tool and all of its records.
+
 ## Evaluation API
 
 The same evaluation harness is exposed over HTTP as `POST /evaluate`, so quality

@@ -5,7 +5,7 @@ import json
 import httpx
 import pytest
 
-from vsf_rag.llm import (
+from vietnamese_rag.llm import (
     ContextChunk,
     DEFAULT_OPENROUTER_MODEL,
     INSUFFICIENT_ANSWER_VI,

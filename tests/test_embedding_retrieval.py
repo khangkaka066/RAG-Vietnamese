@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from vsf_rag.answering import GroundedAnswerEngine
-from vsf_rag.evaluation import evaluate, load_eval_cases
-from vsf_rag.retrieval import Document, HybridRetriever, LexicalRetriever, build_retriever, load_documents
-from vsf_rag.retrieval_embedding import EmbeddingRetriever
+from vietnamese_rag.answering import GroundedAnswerEngine
+from vietnamese_rag.evaluation import evaluate, load_eval_cases
+from vietnamese_rag.retrieval import Document, HybridRetriever, LexicalRetriever, build_retriever, load_documents
+from vietnamese_rag.retrieval_embedding import EmbeddingRetriever
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,7 +23,7 @@ def fake_encoder(texts: list[str]) -> list[list[float]]:
     No torch/sentence-transformers required: it just counts, for each text, how many
     times each token in a fixed vocabulary occurs.
     """
-    from vsf_rag.retrieval import tokenize
+    from vietnamese_rag.retrieval import tokenize
 
     vectors: list[list[float]] = []
     for text in texts:

@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from vsf_rag.answering import GroundedAnswerEngine
-from vsf_rag.evaluation import evaluate, load_eval_cases
-from vsf_rag.retrieval import LexicalRetriever, load_documents, tokenize
+from vietnamese_rag.answering import GroundedAnswerEngine
+from vietnamese_rag.evaluation import evaluate, load_eval_cases
+from vietnamese_rag.retrieval import LexicalRetriever, load_documents, tokenize
 
 
 ROOT = Path(__file__).resolve().parents[1]

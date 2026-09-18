@@ -208,7 +208,7 @@ class OpenRouterProvider:
                 },
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
-                    "HTTP-Referer": "https://github.com/vsf-vietnamese-rag-evaluation",
+                    "HTTP-Referer": "https://github.com/khangkaka066/RAG-Vietnamese",
                     "X-Title": "Vietnamese RAG & LLM Evaluation Service",
                 },
             )

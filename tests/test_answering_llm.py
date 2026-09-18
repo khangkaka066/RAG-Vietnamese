@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from vsf_rag.answering import GroundedAnswerEngine, build_answer_engine
-from vsf_rag.llm import ContextChunk, LLMAnswer, LLMError, OpenRouterProvider
-from vsf_rag.retrieval import LexicalRetriever, load_documents
+from vietnamese_rag.answering import GroundedAnswerEngine, build_answer_engine
+from vietnamese_rag.llm import ContextChunk, LLMAnswer, LLMError, OpenRouterProvider
+from vietnamese_rag.retrieval import LexicalRetriever, load_documents
 
 
 ROOT = Path(__file__).resolve().parents[1]

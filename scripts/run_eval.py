@@ -3,9 +3,9 @@ import json
 import os
 from pathlib import Path
 
-from vsf_rag.answering import build_answer_engine
-from vsf_rag.evaluation import default_eval_path, evaluate, load_eval_cases, write_csv_report, write_json_report
-from vsf_rag.retrieval import build_retriever, load_documents
+from vietnamese_rag.answering import build_answer_engine
+from vietnamese_rag.evaluation import default_eval_path, evaluate, load_eval_cases, write_csv_report, write_json_report
+from vietnamese_rag.retrieval import build_retriever, load_documents
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,7 +36,7 @@ def main() -> None:
         write_csv_report(report, args.csv_out)
 
     if args.mlflow:
-        from vsf_rag.tracking import log_report
+        from vietnamese_rag.tracking import log_report
 
         params = {
             "retriever": type(retriever).__name__,

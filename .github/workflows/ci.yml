@@ -29,7 +29,7 @@ jobs:
       - run: pytest -q
       - name: Run offline evaluation (lexical retriever, no API key)
         env:
-          VSF_RETRIEVER: lexical
+          VIETNAMESE_RETRIEVER: lexical
         run: python scripts/run_eval.py --json-out reports/eval.json --csv-out reports/eval.csv
       - name: Enforce evaluation quality gate
         run: >

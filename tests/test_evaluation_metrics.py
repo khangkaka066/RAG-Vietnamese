@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from vsf_rag.answering import GroundedAnswerEngine, build_answer_engine
-from vsf_rag.evaluation import evaluate, load_eval_cases, write_csv_report, write_json_report
-from vsf_rag.metrics import idf_weighted_containment, mrr_at_k
-from vsf_rag.retrieval import LexicalRetriever, load_documents
-from vsf_rag.router import build_router
-from vsf_rag.tools import build_default_registry
+from vietnamese_rag.answering import GroundedAnswerEngine, build_answer_engine
+from vietnamese_rag.evaluation import evaluate, load_eval_cases, write_csv_report, write_json_report
+from vietnamese_rag.metrics import idf_weighted_containment, mrr_at_k
+from vietnamese_rag.retrieval import LexicalRetriever, load_documents
+from vietnamese_rag.router import build_router
+from vietnamese_rag.tools import build_default_registry
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +22,7 @@ def _documents():
 
 
 def _idf():
-    from vsf_rag.metrics import build_idf
+    from vietnamese_rag.metrics import build_idf
 
     return build_idf(_documents())
 
@@ -186,6 +186,6 @@ def test_log_report_is_noop_without_mlflow(monkeypatch) -> None:
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
 
-    from vsf_rag.tracking import log_report
+    from vietnamese_rag.tracking import log_report
 
     assert log_report({"retrieval_hit_rate": 1.0}) is False

@@ -27,7 +27,7 @@ def log_report(
         return False
 
     mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "file:./mlruns"))
-    mlflow.set_experiment("vsf-rag-eval")
+    mlflow.set_experiment("vietnamese-rag-eval")
 
     with mlflow.start_run(run_name=run_name):
         if params:

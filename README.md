@@ -32,10 +32,11 @@ project treats evaluation and routing as first-class: every answer carries
 its citations and its routing decision, and quality is a number you can gate
 CI on (`scripts/check_eval_gate.py`), not a vibe.
 
-![Demo: tool routing and grounded Vietnamese RAG](docs/demo.gif)
+![Recorded API responses: calculator, two Vietnamese RAG questions, and evaluation on 20 cases](docs/demo.gif)
 
-The GIF is rendered from the UTF-8 SVG demo and shows the two main request paths
-without relying on a terminal font or locale.
+Animated transcript of real local HTTP responses using the checked-in Vietnamese dataset.
+Includes two RAG questions with citations, a calculator call, and evaluation on all 20 cases.
+[Raw responses](docs/demo-responses.json) · [Reproduce the recording](docs/demo-recording.md)
 
 ## What you get
 
@@ -46,8 +47,6 @@ without relying on a terminal font or locale.
 | Offline-first defaults | Lexical retrieval + extractive generation work without an API key or model download. |
 | Evaluation as a gate | Measures hit-rate, MRR, citation coverage, faithfulness, relevancy, and latency in CI. |
 | Production-shaped API | FastAPI, OpenAPI examples, Docker healthcheck, non-root container, and pluggable providers. |
-
-The visual demo above is rendered from [`docs/demo.svg`](docs/demo.svg), which can also be opened directly in a browser.
 
 **Real eval numbers** (checked-in 20-case set, offline lexical + extractive
 baseline — see [Evaluation API](#evaluation-api) for the full table and the
@@ -89,7 +88,7 @@ without changing the API contract.
 cp .env.example .env
 # edit .env and set OPENROUTER_API_KEY (get one at https://openrouter.ai/keys)
 export $(grep -v '^#' .env | xargs)
-uvicorn vsf_rag.api:app --app-dir src --reload
+uvicorn vietnamese_rag.api:app --app-dir src --reload
 ```
 
 `OPENROUTER_MODEL` is optional and defaults to `openrouter/free` (OpenRouter's
@@ -100,8 +99,8 @@ offline using the rule-based extractive generator -- no code change required.
 
 ```bash
 pip install -e '.[embeddings]'   # optional, pulls in sentence-transformers/torch
-VSF_RETRIEVER=hybrid uvicorn vsf_rag.api:app --app-dir src --reload
-# VSF_RETRIEVER accepts: lexical (default) | embedding | hybrid
+VIETNAMESE_RETRIEVER=hybrid uvicorn vietnamese_rag.api:app --app-dir src --reload
+# VIETNAMESE_RETRIEVER accepts: lexical (default) | embedding | hybrid
 ```
 
 `GET /health` reports the active retriever class (`"retriever": "LexicalRetriever"`,
@@ -116,10 +115,10 @@ python scripts/compare_retrievers.py
 ## Agent / tool routing
 
 Every `/query` call first passes through a deterministic, offline **rule-based router**
-(`RuleRouter` in `src/vsf_rag/router.py`) that classifies the query as either `"rag"`
+(`RuleRouter` in `src/vietnamese_rag/router.py`) that classifies the query as either `"rag"`
 (the Phase 1/2 retrieval+generation pipeline, unchanged) or `"tool"` (a registered tool
 handles the query directly, with no retrieval call at all). Two tools are registered by
-default (`src/vsf_rag/tools.py`):
+default (`src/vietnamese_rag/tools.py`):
 
 - `calculate(expression)` — evaluates a whitelisted arithmetic expression
   (`+ - * / // % **`, parentheses) via a restricted `ast` walker. No `eval()`/`exec()`
@@ -161,12 +160,12 @@ leaves `router`/`tools` unset and keeps the old "always rag" behavior; passing
 ## Quick start
 
 ```bash
-cd vsf-vietnamese-rag-evaluation
+cd vietnamese-rag-evaluation
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 pytest
-uvicorn vsf_rag.api:app --app-dir src --reload
+uvicorn vietnamese_rag.api:app --app-dir src --reload
 ```
 
 Open the interactive API documentation at `http://localhost:8000/docs`.
@@ -272,7 +271,7 @@ curl -X POST http://localhost:8000/evaluate -d '{"top_k":3}' -H 'Content-Type: a
 `.github/workflows/ci.yml` runs on every push/PR:
 
 - `test` job (matrix: Python 3.10 and 3.11) — `pytest -q`, then
-  `scripts/run_eval.py` offline (`VSF_RETRIEVER=lexical`, no API key), then
+  `scripts/run_eval.py` offline (`VIETNAMESE_RETRIEVER=lexical`, no API key), then
   `scripts/check_eval_gate.py` enforces minimum thresholds on hit-rate, MRR@k,
   citation coverage, and faithfulness (fails the build on regression); the
   JSON/CSV report is uploaded as a build artifact.

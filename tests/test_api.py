@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import vsf_rag.api as api_module
+import vietnamese_rag.api as api_module
 from fastapi.testclient import TestClient
 
-from vsf_rag.api import app, get_engine, tools as api_tools
+from vietnamese_rag.api import app, get_engine, tools as api_tools
 
 
 client = TestClient(app)
@@ -35,7 +35,7 @@ def test_health_reports_generator_matching_engine_state() -> None:
 def test_engine_is_not_built_at_import_time(monkeypatch) -> None:
     """Regression test for Codex review round 2, finding #4.
 
-    ``vsf_rag.api`` used to call ``build_answer_engine()`` -- which reads
+    ``vietnamese_rag.api`` used to call ``build_answer_engine()`` -- which reads
     ``OPENROUTER_API_KEY``/``OPENROUTER_MODEL`` from the environment -- at
     *module import time*. Since pytest imports every test module during
     collection (before any test's fixtures run), that meant a real
@@ -259,7 +259,7 @@ def test_evaluate_response_matches_real_evaluate_output() -> None:
     assert response.status_code == 200
     body = response.json()
 
-    from vsf_rag.evaluation import evaluate as run_evaluate
+    from vietnamese_rag.evaluation import evaluate as run_evaluate
 
     real_report = run_evaluate(get_engine(), list(api_module.get_eval_cases()), top_k=3)
     assert set(real_report.keys()) == set(body.keys())
@@ -273,7 +273,7 @@ def test_query_response_shape_matches_answer_dataclass() -> None:
     assert response.status_code == 200
 
     body = response.json()
-    from vsf_rag.answering import Answer
+    from vietnamese_rag.answering import Answer
 
     expected_fields = {field for field in Answer.__dataclass_fields__}
     assert expected_fields == set(body.keys())

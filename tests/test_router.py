@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from vsf_rag.router import RouteDecision, RuleRouter, build_router
+from vietnamese_rag.router import RouteDecision, RuleRouter, build_router
 
 
 @pytest.fixture()

@@ -1,0 +1,541 @@
+{
+  "mode": "offline lexical + extractive",
+  "requests": [
+    {
+      "endpoint": "/query",
+      "request": {
+        "query": "tính 2+3*4",
+        "top_k": 3
+      },
+      "response": {
+        "query": "tính 2+3*4",
+        "answer": "Kết quả: 2+3*4 = 14.",
+        "citations": [],
+        "confidence": 1.0,
+        "retrieved_documents": [],
+        "status": "OK",
+        "generator": "tool",
+        "citations_are_model_asserted": true,
+        "route": "tool",
+        "route_reason": "Câu hỏi là một biểu thức số học; dùng tool calculate.",
+        "tool_trace": [
+          {
+            "tool": "calculate",
+            "arguments": {
+              "expression": "2+3*4"
+            },
+            "result": {
+              "expression": "2+3*4",
+              "result": 14
+            },
+            "error": null,
+            "duration_ms": 0.045
+          }
+        ]
+      }
+    },
+    {
+      "endpoint": "/query",
+      "request": {
+        "query": "RAG hoạt động như thế nào?",
+        "top_k": 3
+      },
+      "response": {
+        "query": "RAG hoạt động như thế nào?",
+        "answer": "Theo tài liệu 'Nguyên tắc của RAG': RAG kết hợp bước truy xuất tài liệu với bước sinh câu trả lời. Hệ thống cần đưa các đoạn văn bản liên quan vào context và trích dẫn nguồn để giảm câu trả lời không có căn cứ.",
+        "citations": [
+          "internal-demo/rag-principles.md"
+        ],
+        "confidence": 0.4806,
+        "retrieved_documents": [
+          {
+            "id": "rag-001",
+            "title": "Nguyên tắc của RAG",
+            "source": "internal-demo/rag-principles.md",
+            "score": 0.7208,
+            "matched_terms": [
+              "rag"
+            ]
+          },
+          {
+            "id": "llm-003",
+            "title": "Fine-tuning so với RAG",
+            "source": "internal-demo/finetuning-vs-rag.md",
+            "score": 0.6619,
+            "matched_terms": [
+              "rag"
+            ]
+          },
+          {
+            "id": "mlops-004",
+            "title": "CI/CD cho pipeline machine learning",
+            "source": "internal-demo/ci-cd-ml.md",
+            "score": 0.5297,
+            "matched_terms": [
+              "động"
+            ]
+          }
+        ],
+        "status": "OK",
+        "generator": "extractive",
+        "citations_are_model_asserted": true,
+        "route": "rag",
+        "route_reason": "Không khớp rule tool nào; dùng RAG.",
+        "tool_trace": []
+      }
+    },
+    {
+      "endpoint": "/query",
+      "request": {
+        "query": "Đánh giá LLM cần đo những gì?",
+        "top_k": 3
+      },
+      "response": {
+        "query": "Đánh giá LLM cần đo những gì?",
+        "answer": "Theo tài liệu 'Đánh giá hệ thống LLM': Một bộ đánh giá LLM nên đo answer relevance, faithfulness, citation coverage, độ trễ và tỷ lệ lỗi. Dữ liệu đánh giá phải được version hóa và tách khỏi dữ liệu dùng để phát triển prompt.",
+        "citations": [
+          "internal-demo/llm-evaluation.md"
+        ],
+        "confidence": 1.0,
+        "retrieved_documents": [
+          {
+            "id": "eval-001",
+            "title": "Đánh giá hệ thống LLM",
+            "source": "internal-demo/llm-evaluation.md",
+            "score": 3.0198,
+            "matched_terms": [
+              "giá",
+              "llm",
+              "đo",
+              "đánh"
+            ]
+          },
+          {
+            "id": "emb-003",
+            "title": "Cosine similarity và chuẩn hóa vector",
+            "source": "internal-demo/cosine-similarity.md",
+            "score": 1.0917,
+            "matched_terms": [
+              "cần",
+              "giá",
+              "đo"
+            ]
+          },
+          {
+            "id": "eval-003",
+            "title": "Faithfulness và answer relevancy",
+            "source": "internal-demo/faithfulness-relevancy.md",
+            "score": 0.7959,
+            "matched_terms": [
+              "giá",
+              "đánh"
+            ]
+          }
+        ],
+        "status": "OK",
+        "generator": "extractive",
+        "citations_are_model_asserted": true,
+        "route": "rag",
+        "route_reason": "Không khớp rule tool nào; dùng RAG.",
+        "tool_trace": []
+      }
+    }
+  ],
+  "evaluation": {
+    "endpoint": "/evaluate",
+    "request": {
+      "top_k": 3,
+      "include_details": true
+    },
+    "response": {
+      "cases": 20,
+      "top_k": 3,
+      "retrieval_hit_rate": 1.0,
+      "retrieval_mrr_at_k": 1.0,
+      "citation_coverage": 1.0,
+      "citation_coverage_model_asserted": 1.0,
+      "answer_keyword_coverage": 1.0,
+      "faithfulness": 0.9431,
+      "faithfulness_scored_cases": 20,
+      "answer_relevancy": 0.607,
+      "latency_ms": {
+        "retrieval_mean": 0.2879,
+        "retrieval_p95": 0.5242,
+        "generation_mean": 0.0165,
+        "generation_p95": 0.0348,
+        "total_mean": 0.3044,
+        "total_p95": 0.5453
+      },
+      "routes": {
+        "rag": 20
+      },
+      "details": [
+        {
+          "query": "RAG hoạt động như thế nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.8696,
+          "answer_relevancy": 0.1213,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.175,
+            "generation": 0.0224,
+            "total": 0.1973
+          }
+        },
+        {
+          "query": "Đánh giá LLM cần đo những gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.8905,
+          "answer_relevancy": 0.5115,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2002,
+            "generation": 0.0159,
+            "total": 0.2161
+          }
+        },
+        {
+          "query": "Quality gate của pipeline ML kiểm tra gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9629,
+          "answer_relevancy": 0.834,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.1952,
+            "generation": 0.014,
+            "total": 0.2092
+          }
+        },
+        {
+          "query": "Agent gọi tool cần có những cơ chế an toàn nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9078,
+          "answer_relevancy": 0.6311,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2847,
+            "generation": 0.0125,
+            "total": 0.2972
+          }
+        },
+        {
+          "query": "API suy luận cần có endpoint và trạng thái nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.8854,
+          "answer_relevancy": 0.7888,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.275,
+            "generation": 0.012,
+            "total": 0.287
+          }
+        },
+        {
+          "query": "Chunking và overlap giữa các đoạn văn bản dùng để làm gì trong RAG?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9249,
+          "answer_relevancy": 0.5895,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.5118,
+            "generation": 0.0201,
+            "total": 0.5319
+          }
+        },
+        {
+          "query": "Hybrid search kết hợp BM25 và vector như thế nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 1.0,
+          "answer_relevancy": 0.6123,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2478,
+            "generation": 0.0157,
+            "total": 0.2635
+          }
+        },
+        {
+          "query": "Reranking bằng cross-encoder hoạt động ra sao?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9742,
+          "answer_relevancy": 0.4711,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.1784,
+            "generation": 0.0122,
+            "total": 0.1906
+          }
+        },
+        {
+          "query": "Query rewriting và kỹ thuật HyDE dùng để làm gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.967,
+          "answer_relevancy": 0.7193,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.239,
+            "generation": 0.0119,
+            "total": 0.2509
+          }
+        },
+        {
+          "query": "Embedding tiếng Việt bằng bi-encoder cần lưu ý gì về dấu thanh?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 1.0,
+          "answer_relevancy": 0.6552,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2763,
+            "generation": 0.012,
+            "total": 0.2883
+          }
+        },
+        {
+          "query": "Cosine similarity và chuẩn hóa vector liên quan thế nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 1.0,
+          "answer_relevancy": 0.5275,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2851,
+            "generation": 0.0222,
+            "total": 0.3072
+          }
+        },
+        {
+          "query": "Vector database dùng chỉ mục HNSW hay IVF để tăng tốc thế nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9715,
+          "answer_relevancy": 0.5372,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.367,
+            "generation": 0.0153,
+            "total": 0.3823
+          }
+        },
+        {
+          "query": "Hit-rate và MRR@k đánh giá retrieval như thế nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9243,
+          "answer_relevancy": 0.5267,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.3042,
+            "generation": 0.0137,
+            "total": 0.3179
+          }
+        },
+        {
+          "query": "Câu trả lời có bịa thêm thông tin ngoài ngữ cảnh và có giải quyết đúng câu hỏi được đặt ra hay không?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9546,
+          "answer_relevancy": 0.9408,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.761,
+            "generation": 0.0392,
+            "total": 0.8001
+          }
+        },
+        {
+          "query": "Prompt template và system prompt cần có cấu trúc gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9416,
+          "answer_relevancy": 0.6838,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2534,
+            "generation": 0.0345,
+            "total": 0.2879
+          }
+        },
+        {
+          "query": "Hallucination và grounding trong LLM liên quan thế nào?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9471,
+          "answer_relevancy": 0.4771,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2289,
+            "generation": 0.0136,
+            "total": 0.2425
+          }
+        },
+        {
+          "query": "Giám sát data drift trong production để làm gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9541,
+          "answer_relevancy": 0.5794,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2122,
+            "generation": 0.0113,
+            "total": 0.2235
+          }
+        },
+        {
+          "query": "Router lựa chọn dùng RAG hay gọi tool dựa trên gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.8774,
+          "answer_relevancy": 0.6742,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2566,
+            "generation": 0.0108,
+            "total": 0.2673
+          }
+        },
+        {
+          "query": "Rate limiting và caching cho API mang lại lợi ích gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9356,
+          "answer_relevancy": 0.5277,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2713,
+            "generation": 0.0108,
+            "total": 0.2821
+          }
+        },
+        {
+          "query": "PII redaction và phòng chống prompt injection cần làm gì?",
+          "retrieval_hit": true,
+          "rank": 1,
+          "reciprocal_rank": 1.0,
+          "citation_present": true,
+          "keyword_coverage": 1.0,
+          "faithfulness": 0.9725,
+          "answer_relevancy": 0.7308,
+          "status": "OK",
+          "route": "rag",
+          "generator": "extractive",
+          "latency_ms": {
+            "retrieval": 0.2354,
+            "generation": 0.0103,
+            "total": 0.2457
+          }
+        }
+      ]
+    }
+  },
+  "datasets": {
+    "data/knowledge_base.jsonl": "0fe4042f553915e03e92b802a9b4f8737a9392f0ddbf69cd733505b6b229f9e9",
+    "data/eval.jsonl": "72d3ca8def11cf118cd98306513e7893a2945ae25c7acbe7b7f6b437dd6960da"
+  },
+  "font": "Courier New.ttf"
+}

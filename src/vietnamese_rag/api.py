@@ -217,7 +217,7 @@ class LatencyStats(BaseModel):
 
 
 class EvaluateResponse(BaseModel):
-    """Mirrors the report dict returned by ``vsf_rag.evaluation.evaluate()``.
+    """Mirrors the report dict returned by ``vietnamese_rag.evaluation.evaluate()``.
 
     ``details`` is only present when the request set ``include_details=true``
     (see ``evaluate_endpoint``); it is omitted from the response entirely
@@ -281,7 +281,7 @@ def health() -> dict:
 def query(request: QueryRequest) -> dict:
     """Answer a query, either grounded in retrieval ("rag") or via a tool.
 
-    The router (see ``vsf_rag.router``) inspects the query and picks one of
+    The router (see ``vietnamese_rag.router``) inspects the query and picks one of
     two mutually-exclusive paths -- see the ``route``/``route_reason``/
     ``tool_trace`` fields on the response for which one was taken and why.
     """
@@ -311,7 +311,7 @@ def call_tool(request: ToolRequest) -> dict:
     response_model_exclude_none=True,
 )
 def evaluate_endpoint(request: EvaluateRequest) -> dict[str, Any]:
-    """Run the offline evaluation harness (see ``vsf_rag.evaluation.evaluate``).
+    """Run the offline evaluation harness (see ``vietnamese_rag.evaluation.evaluate``).
 
     Defaults to scoring the checked-in evaluation set (``data/eval.jsonl``,
     20 cases); pass ``cases`` to score a custom set instead (max 50, to bound

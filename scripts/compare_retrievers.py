@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vsf_rag.retrieval import LexicalRetriever, HybridRetriever, load_documents
-from vsf_rag.retrieval_embedding import EmbeddingRetriever
-from vsf_rag.evaluation import load_eval_cases
+from vietnamese_rag.retrieval import LexicalRetriever, HybridRetriever, load_documents
+from vietnamese_rag.retrieval_embedding import EmbeddingRetriever
+from vietnamese_rag.evaluation import load_eval_cases
 
 
 ROOT = Path(__file__).resolve().parents[1]

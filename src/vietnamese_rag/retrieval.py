@@ -197,12 +197,12 @@ class HybridRetriever:
 def build_retriever(documents: list[Document], mode: str | None = None, **kwargs) -> "Retriever":
     """Factory that picks a retriever implementation.
 
-    ``mode`` defaults to the ``VSF_RETRIEVER`` environment variable, which in turn
+    ``mode`` defaults to the ``VIETNAMESE_RETRIEVER`` environment variable, which in turn
     defaults to ``"lexical"``. This keeps the system-wide default fully offline
     (no ``sentence-transformers`` dependency required) while allowing embedding or
     hybrid retrieval to be enabled explicitly.
     """
-    resolved_mode = mode or os.environ.get("VSF_RETRIEVER", "lexical")
+    resolved_mode = mode or os.environ.get("VIETNAMESE_RETRIEVER", "lexical")
 
     if resolved_mode == "lexical":
         return LexicalRetriever(documents, **kwargs)

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vsf_rag.answering import GroundedAnswerEngine, build_answer_engine
-from vsf_rag.retrieval import LexicalRetriever, load_documents
-from vsf_rag.router import RouteDecision, Router
-from vsf_rag.tools import ToolRegistry, build_default_registry
+from vietnamese_rag.answering import GroundedAnswerEngine, build_answer_engine
+from vietnamese_rag.retrieval import LexicalRetriever, load_documents
+from vietnamese_rag.router import RouteDecision, Router
+from vietnamese_rag.tools import ToolRegistry, build_default_registry
 
 
 ROOT = Path(__file__).resolve().parents[1]

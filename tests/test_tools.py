@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from vsf_rag.tools import (
+from vietnamese_rag.tools import (
     ToolCallTrace,
     ToolError,
     ToolRegistry,

@@ -3,8 +3,6 @@
 Mục tiêu: định vị lại project để khớp JD VinSmart Future - AI Engineer
 (NLP/RAG, generative AI, agentic systems, ML Ops, production API).
 
-Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
-
 ## Phase 0 — Chốt phạm vi
 - [x] LLM provider: **OpenRouter với model free** (OpenAI-compatible API, base_url riêng, cần OPENROUTER_API_KEY)
 - [x] Embedding model tiếng Việt: **bkai-foundation-models/vietnamese-bi-encoder** (qua sentence-transformers)
@@ -12,14 +10,14 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Mở rộng `data/knowledge_base.jsonl` và `data/eval.jsonl` (hiện chỉ 5 dòng — cần đủ đa dạng để số liệu eval có ý nghĩa)
 
 ## Phase 1 — Embedding retrieval (thay lexical-only)
-- [x] Thêm `EmbeddingRetriever` trong `src/vsf_rag/retrieval.py` (hoặc file mới `retrieval_embedding.py`)
+- [x] Thêm `EmbeddingRetriever` trong `src/vietnamese_rag/retrieval.py` (hoặc file mới `retrieval_embedding.py`)
   - Input: query string, danh sách document chunks
   - Output: top-k chunks kèm cosine similarity score
 - [x] Giữ retriever lexical (BM25) hiện tại làm fallback/so sánh — implement **hybrid** (kết hợp điểm) hoặc cho phép chọn qua config
 - [x] Unit test: so sánh hit-rate lexical vs embedding trên `data/eval.jsonl`
 
 ## Phase 2 — LLM-based generation (thay extractive rule-based)
-- [x] Thiết kế `LLMProvider` interface (`generate(query, context) -> LLMAnswer`) trong `src/vsf_rag/llm.py`
+- [x] Thiết kế `LLMProvider` interface (`generate(query, context) -> LLMAnswer`) trong `src/vietnamese_rag/llm.py`
   - Input: query + retrieved context (list `ContextChunk` với citation id)
   - Output: câu trả lời tiếng Việt + danh sách citation id được dùng
 - [x] Implement `OpenRouterProvider` (API-backed, OpenAI-compatible `/chat/completions`) theo lựa chọn ở Phase 0.

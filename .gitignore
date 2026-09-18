@@ -11,3 +11,4 @@ dist/
 mlruns/
 reports/
 .tmp_pytest/
+tasks/

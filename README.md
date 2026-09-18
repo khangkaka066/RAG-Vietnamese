@@ -1,5 +1,21 @@
 # Vietnamese RAG & LLM Evaluation Service
 
+<p align="center">
+  <img src="docs/demo.svg" alt="Visual demo of tool routing and grounded Vietnamese RAG" width="100%" />
+</p>
+
+<p align="center">
+  <strong>Grounded answers, explicit routing, and measurable quality — in one small FastAPI service.</strong>
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#evaluation-api">Evaluation API</a> ·
+  <a href="docs/demo.svg">Open demo SVG</a> ·
+  <a href="docs/architecture.svg">Open architecture SVG</a>
+</p>
+
 [![CI](https://github.com/khangkaka066/RAG-Vietnamese/actions/workflows/ci.yml/badge.svg)](https://github.com/khangkaka066/RAG-Vietnamese/actions/workflows/ci.yml)
 [![Python 3.10 | 3.11](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-informational)](LICENSE)
@@ -22,6 +38,18 @@ project treats evaluation and routing as first-class: every answer carries
 its citations and its routing decision, and quality is a number you can gate
 CI on (`scripts/check_eval_gate.py`), not a vibe.
 
+## What you get
+
+| Capability | What it does |
+| --- | --- |
+| Grounded Vietnamese answers | Retrieves evidence, requires citations, and returns `UNAVAILABLE` when evidence is insufficient. |
+| Explicit tool routing | Sends arithmetic and date/time queries to safe, traceable tools without touching retrieval. |
+| Offline-first defaults | Lexical retrieval + extractive generation work without an API key or model download. |
+| Evaluation as a gate | Measures hit-rate, MRR, citation coverage, faithfulness, relevancy, and latency in CI. |
+| Production-shaped API | FastAPI, OpenAPI examples, Docker healthcheck, non-root container, and pluggable providers. |
+
+The visual demo above is a static overview of the two main request paths. The GIF below is captured from the running local API.
+
 **Real eval numbers** (checked-in 20-case set, offline lexical + extractive
 baseline — see [Evaluation API](#evaluation-api) for the full table and the
 LLM/embedding variants):
@@ -30,27 +58,7 @@ LLM/embedding variants):
 | --- | --- | --- | --- | --- |
 | 1.0 | 1.0 | 1.0 | ~0.94 | ~0.61 |
 
-Status: **Phase 5 (API, Docker, CI) complete** for CI/OpenAPI/Docker — GitHub
-Actions, OpenAPI examples, and a non-root Docker image are all implemented.
-Roadmap items 2-5 are done; item 1 has multilingual embedding retrieval but
-not yet a cross-encoder reranker; item 6 is done except for the hosted demo
-deployment, which is still outstanding (see Roadmap #6).
-
-## Real-world applications
-
-Once complete, this architecture can be applied to problems that require
-retrieving and answering from an internal Vietnamese document store, such as:
-
-- An internal policy/procedure lookup assistant for enterprises (HR, legal, operations)
-- A customer support chatbot grounded in product documentation/FAQs, with source
-  citations to verify answers instead of hallucinating
-- A semantic search tool for technical documents, contracts, or internal
-  knowledge bases where plain keyword search isn't accurate enough
-- A foundation for extending into a tool-using agent (looking up data, calling
-  business APIs) instead of only returning static answers
-- An evaluation framework (retrieval hit-rate, citation coverage, faithfulness)
-  to measure and improve RAG system quality with evidence, rather than by
-  subjective judgment
+Status: **API, Docker, CI, tool routing, and evaluation are implemented.**
 
 ## Architecture
 
@@ -271,46 +279,3 @@ curl -X POST http://localhost:8000/evaluate -d '{"top_k":3}' -H 'Content-Type: a
   JSON/CSV report is uploaded as a build artifact.
 - `docker` job — build-only sanity check (`docker build .`) that the image
   defined above still builds.
-
-## Current quality gates
-
-- Retrieval hit-rate@k and MRR@k on the checked-in evaluation set
-- Answer keyword coverage
-- Citation coverage
-- Faithfulness and answer relevancy (offline lexical heuristic)
-- Per-stage latency (retrieval / generation / total)
-- Unavailable behavior when evidence is insufficient
-- Unit tests for tokenization, ranking, evaluation, and failure handling
-
-## JD → project mapping
-
-Built with the **AI Engineer @ VinSmart Future** role in mind (NLP,
-generative AI, agentic systems, ML Ops, production APIs). How each
-requirement is covered:
-
-| JD requirement | Where it shows up here |
-| --- | --- |
-| NLP / RAG pipelines / LLMs / text understanding | `src/vsf_rag/retrieval.py` (lexical + Vietnamese sentence-embedding retriever), `src/vsf_rag/llm.py` (OpenRouter `LLMProvider`) |
-| Generative AI, agent-based systems | `src/vsf_rag/router.py` (`RuleRouter`) + `src/vsf_rag/tools.py` (`ToolRegistry`, `calculate`/`current_datetime`) with full call-trace logging |
-| Deploying AI/ML models in production | `Dockerfile` (non-root, `HEALTHCHECK`), `src/vsf_rag/api.py` (FastAPI `/query`, `/tools`, `/tools/call`, `/evaluate`) |
-| Robust training/evaluation/inference pipelines, ML Ops practices | `scripts/run_eval.py`, `scripts/check_eval_gate.py` (CI quality gate), `--mlflow` experiment tracking |
-| API development / microservices / full-stack AI integration | OpenAPI examples + response models in `src/vsf_rag/api.py`, `.github/workflows/ci.yml` (pytest matrix + eval gate + Docker build) |
-| ML Ops bonus: MLflow, Docker, cloud-ready | MLflow logging in `scripts/run_eval.py`, single-stage Docker image, 12-factor env-var configuration |
-| Multi-domain adaptability | Provider-agnostic retriever/generator/tool interfaces — swapping domains means adding data + tools, not rewriting the pipeline |
-
-## Roadmap
-
-1. Add multilingual embedding retrieval and a cross-encoder reranker.
-2. ~~Add an LLM provider interface with local-model and API-backed implementations.~~
-   Done: OpenRouter-backed `LLMProvider`, with automatic extractive fallback.
-3. ~~Add Vietnamese RAG faithfulness and answer-relevance evaluation.~~
-   Done: offline IDF-weighted lexical heuristic (see "Run the evaluation set" above).
-4. ~~Add MLflow/W&B experiment tracking and latency metrics.~~
-   Done: `--mlflow` flag on `scripts/run_eval.py`, retrieval/generation/total latency in the report.
-5. ~~Add a tool-using agent with explicit planning, tool-call validation, and trace logging.~~
-   Done: rule-based router + `calculate`/`current_datetime` tools with full call-trace logging
-   (see "Agent / tool routing" above).
-6. ~~Add GitHub Actions, OpenAPI examples, and a small deployed demo.~~
-   Done: `.github/workflows/ci.yml` (pytest matrix + offline eval + quality gate + Docker
-   build), `/query`/`/tools/call`/`/evaluate` OpenAPI request/response examples (see `/docs`),
-   non-root `Dockerfile` with `HEALTHCHECK`. A hosted demo deployment is still outstanding.

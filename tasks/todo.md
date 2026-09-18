@@ -85,3 +85,7 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
   nội dung/response bên trong là thật 100%, chỉ phần trình bày là dựng lại;
   nên cân nhắc quay lại bằng Chrome/asciinema khi có môi trường phù hợp nếu
   muốn một bản ghi màn hình thực sự.
+- Cập nhật thêm: thay sơ đồ Mermaid (chỉ render đẹp trên GitHub, xấu khi xem
+  raw/preview khác) bằng ảnh vector `docs/architecture.svg` (vẽ tay bằng SVG,
+  giữ nguyên luồng request) để README luôn có ảnh kiến trúc thật ở mọi nơi
+  hiển thị markdown, không phụ thuộc engine render Mermaid.

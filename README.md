@@ -54,27 +54,7 @@ retrieving and answering from an internal Vietnamese document store, such as:
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    U["User query"] --> API["FastAPI\n/query · /tools/call · /evaluate"]
-    API --> R{"RuleRouter\n(rule-based, offline)"}
-
-    R -- "route = rag" --> DL["Document loader"] --> RET["Retriever\nlexical · embedding · hybrid"]
-    RET --> GEN["Generator\nOpenRouter LLM (citations required)\n↳ falls back to extractive if no API key / LLMError"]
-
-    R -- "route = tool" --> TR["ToolRegistry.call_with_trace\ncalculate · current_datetime"]
-
-    GEN --> ANS["Answer\nroute · route_reason · tool_trace · citations"]
-    TR --> ANS
-    ANS --> API
-
-    classDef svc fill:#1f6feb,stroke:#1f6feb,color:#fff;
-    classDef data fill:#2ea043,stroke:#2ea043,color:#fff;
-    classDef decision fill:#d29922,stroke:#d29922,color:#111;
-    class API,GEN,TR svc;
-    class DL,RET,ANS data;
-    class R decision;
-```
+![System architecture diagram: client sends a query to the FastAPI service, RuleRouter picks the RAG path (document loader, retriever, generator) or the tool path (ToolRegistry), both converge into a single Answer object](docs/architecture.svg)
 
 Everything downstream of `RuleRouter` is swappable behind an interface —
 `Retriever`, `LLMProvider`/extractive generator, and `Tool` are all pluggable,

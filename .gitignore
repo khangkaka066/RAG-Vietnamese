@@ -8,3 +8,6 @@ dist/
 .history/
 .bangiao/
 .claude/
+mlruns/
+reports/
+.tmp_pytest/

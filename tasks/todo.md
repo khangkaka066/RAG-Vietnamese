@@ -19,32 +19,33 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [x] Unit test: so sánh hit-rate lexical vs embedding trên `data/eval.jsonl`
 
 ## Phase 2 — LLM-based generation (thay extractive rule-based)
-- [ ] Thiết kế `LLMProvider` interface (`generate(prompt, context) -> answer`) trong `src/vsf_rag/llm.py`
-  - Input: query + retrieved context (list chunk + citation id)
+- [x] Thiết kế `LLMProvider` interface (`generate(query, context) -> LLMAnswer`) trong `src/vsf_rag/llm.py`
+  - Input: query + retrieved context (list `ContextChunk` với citation id)
   - Output: câu trả lời tiếng Việt + danh sách citation id được dùng
-- [ ] Implement 1 provider cụ thể (API-backed) theo lựa chọn ở Phase 0
-- [ ] Thêm prompt template ép model trích dẫn nguồn và trả lời "không đủ dữ liệu" khi context rỗng/không liên quan
-- [ ] Cập nhật `answering.py` để gọi qua interface này thay vì rule-based cũ (giữ rule-based làm fallback không cần API key — hữu ích cho CI/demo offline)
+- [x] Implement `OpenRouterProvider` (API-backed, OpenAI-compatible `/chat/completions`) theo lựa chọn ở Phase 0.
+      Model mặc định khi không set `OPENROUTER_MODEL`: `openrouter/free` (auto-router free chính thức của OpenRouter).
+- [x] Thêm prompt template (`SYSTEM_PROMPT_VI`) ép model trích dẫn nguồn và trả lời "không đủ dữ liệu" khi context rỗng/không liên quan
+- [x] Cập nhật `answering.py` (`build_answer_engine`) để gọi qua interface này thay vì rule-based cũ (giữ rule-based làm fallback tự động khi thiếu `OPENROUTER_API_KEY` hoặc khi `LLMError` — hữu ích cho CI/demo offline)
 
 ## Phase 3 — Agent / tool-use tối thiểu
-- [ ] Định nghĩa 1-2 tool thật trong `tools.py` (vd: tính toán, tra cứu ngày giờ, hoặc gọi 1 API public đơn giản)
+- [x] Định nghĩa 1-2 tool thật trong `tools.py` (vd: tính toán, tra cứu ngày giờ, hoặc gọi 1 API public đơn giản)
   - Input: câu hỏi được router phân loại là "cần tool"
   - Output: kết quả tool + log trace (tool nào được gọi, tham số gì, kết quả gì)
-- [ ] Router: LLM hoặc rule đơn giản quyết định dùng RAG hay tool
-- [ ] Log trace ra response để minh bạch quá trình quyết định (phục vụ demo/portfolio)
+- [x] Router: LLM hoặc rule đơn giản quyết định dùng RAG hay tool
+- [x] Log trace ra response để minh bạch quá trình quyết định (phục vụ demo/portfolio)
 
 ## Phase 4 — Evaluation nâng cấp (RAGAS-style)
-- [ ] Retrieval: hit-rate, MRR@k
-- [ ] Generation: faithfulness (câu trả lời có bám context không), answer relevancy
-- [ ] Citation coverage (giữ từ bản cũ)
-- [ ] Latency per stage (retrieval / generation / total)
-- [ ] Xuất kết quả eval ra file (json/csv) + log vào MLflow/W&B đã chọn ở Phase 0
+- [x] Retrieval: hit-rate, MRR@k
+- [x] Generation: faithfulness (câu trả lời có bám context không), answer relevancy
+- [x] Citation coverage (giữ từ bản cũ)
+- [x] Latency per stage (retrieval / generation / total)
+- [x] Xuất kết quả eval ra file (json/csv) + log vào MLflow/W&B đã chọn ở Phase 0
 
 ## Phase 5 — API, Docker, CI (giữ + hoàn thiện)
-- [ ] Đảm bảo `/query`, `/evaluate` hoạt động với pipeline mới, cập nhật OpenAPI examples
-- [ ] Cập nhật `Dockerfile` nếu thêm dependency mới (torch/sentence-transformers nặng — cân nhắc image size)
-- [ ] Thêm GitHub Actions chạy pytest + eval trên mỗi PR (roadmap mục 6 trong README cũ)
-- [ ] Cập nhật `README.md`: kiến trúc mới, cách chạy, số liệu eval mẫu
+- [x] Đảm bảo `/query`, `/evaluate` hoạt động với pipeline mới, cập nhật OpenAPI examples
+- [x] Cập nhật `Dockerfile` nếu thêm dependency mới (torch/sentence-transformers nặng — cân nhắc image size)
+- [x] Thêm GitHub Actions chạy pytest + eval trên mỗi PR (roadmap mục 6 trong README cũ)
+- [x] Cập nhật `README.md`: kiến trúc mới, cách chạy, số liệu eval mẫu
 
 ## Phase 6 — Polish cho CV/portfolio
 - [ ] Viết 1 đoạn mô tả ngắn (README) nêu rõ: vấn đề giải quyết, kiến trúc, số liệu eval đạt được
@@ -52,6 +53,18 @@ Nguồn JD: `/Users/nguyenvokhang/Downloads/VSF_JD AI Engineer_HCM.docx`
 - [ ] Đối chiếu lại với từng gạch đầu dòng JD, đảm bảo README nêu rõ ánh xạ (giúp khi phỏng vấn dễ trình bày)
 
 ## Review (điền sau khi hoàn thành)
-- Kết quả đạt được:
-- Số liệu eval trước/sau:
-- Điểm còn thiếu so với JD (nếu có):
+- Kết quả đạt được: Phase 5 hoàn thành — `POST /evaluate` chạy được harness Phase 4 qua HTTP
+  (mặc định 20 case checked-in, hỗ trợ `cases` tuỳ chỉnh, `include_details` để ẩn/hiện chi tiết
+  từng case); OpenAPI có `openapi_tags` + example cho `QueryRequest`/`ToolRequest`/`EvaluateRequest`
+  và response models (`QueryResponse`/`HealthResponse`/`ToolsResponse`/`ToolCallResponse`) khớp
+  100% field với `Answer.to_dict()`; `Dockerfile` single-stage non-root có `HEALTHCHECK` và
+  `ARG EXTRAS` cho biến thể embeddings; `.github/workflows/ci.yml` chạy matrix Python 3.10/3.11 +
+  eval offline + `scripts/check_eval_gate.py` (quality gate) + upload artifact + job `docker`
+  build-only; README cập nhật badge CI, mục "Evaluation API", "Docker", "Continuous Integration".
+- Số liệu eval trước/sau: không đổi so với Phase 4 (logic `evaluate()` không sửa) — lexical +
+  extractive trên 20 case: `retrieval_hit_rate=1.0`, `retrieval_mrr_at_k=1.0`,
+  `citation_coverage=1.0`, `faithfulness≈0.94`, `answer_relevancy≈0.61`.
+- Điểm còn thiếu so với JD (nếu có): chưa có demo deployment thật (chỉ Docker build-only trong
+  CI, không push image/deploy); `docker build`/`docker run` chưa verify được trong môi trường
+  thực thi task này vì Docker daemon không chạy sẵn ở sandbox — cần verify thủ công trước khi
+  release.
